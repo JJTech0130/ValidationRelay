@@ -19,6 +19,8 @@ struct ContentView: View {
     //private var relayConnectionManager: RelayConnectionManager? = nil
     @ObservedObject var relayConnectionManager: RelayConnectionManager
     
+    var appMon = ApplicationMonitor()
+    
 //    init() {
 //        relayConnectionManager = RelayConnectionManager(registrationCodeBinding: $registrationCode, connectionStatusMessageBinding: $connectionStatusMessage)
 //    }
@@ -28,6 +30,7 @@ struct ContentView: View {
         if wantRelayConnected {
             relayConnectionManager.connect(getCurrentRelayURL())
         }
+        appMon.start()
     }
     
     func getCurrentRelayURL() -> URL {
@@ -66,9 +69,8 @@ struct ContentView: View {
                 Text(relayConnectionManager.connectionStatusMessage)
             }
             Section {
-                // TODO: Actually support running in the background
-                Toggle("Run in Background", isOn: .constant(false))
-                    .disabled(true)
+                //Toggle("Run in Background", isOn: .constant(false))
+                //    .disabled(true)
                 Picker("Relay", selection: $selectedRelay) {
                     Text("Beeper").tag("Beeper")
                     //Text("pypush").tag("pypush")

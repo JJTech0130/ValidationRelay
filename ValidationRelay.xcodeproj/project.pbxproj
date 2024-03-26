@@ -13,6 +13,8 @@
 		480989A92BB0C01A00B49AE8 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 480989A82BB0C01A00B49AE8 /* Preview Assets.xcassets */; };
 		480989B32BB0C19300B49AE8 /* absd.defs in Sources */ = {isa = PBXBuildFile; fileRef = 480989B22BB0C0F800B49AE8 /* absd.defs */; settings = {ATTRIBUTES = (Client, ); }; };
 		48D289112BB3579000EA9DEC /* libMobileGestalt.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 48D289102BB3579000EA9DEC /* libMobileGestalt.tbd */; };
+		48D289132BB3743F00EA9DEC /* ApplicationMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D289122BB3743F00EA9DEC /* ApplicationMonitor.swift */; };
+		48D289152BB3745000EA9DEC /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D289142BB3745000EA9DEC /* LocationManager.swift */; };
 		48D8604A2BB0DD110092EF79 /* ValidationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D860492BB0DD110092EF79 /* ValidationData.swift */; };
 		48D8604D2BB1B8CC0092EF79 /* NWWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 48D8604C2BB1B8CC0092EF79 /* NWWebSocket */; };
 		48D8604F2BB1B8EB0092EF79 /* Relay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D8604E2BB1B8EB0092EF79 /* Relay.swift */; };
@@ -28,6 +30,9 @@
 		480989B22BB0C0F800B49AE8 /* absd.defs */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.mig; path = absd.defs; sourceTree = "<group>"; };
 		480989B42BB0D16400B49AE8 /* ValidationRelay.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ValidationRelay.entitlements; sourceTree = "<group>"; };
 		48D289102BB3579000EA9DEC /* libMobileGestalt.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libMobileGestalt.tbd; path = usr/lib/libMobileGestalt.tbd; sourceTree = SDKROOT; };
+		48D289122BB3743F00EA9DEC /* ApplicationMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationMonitor.swift; sourceTree = "<group>"; };
+		48D289142BB3745000EA9DEC /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		48D289162BB374FA00EA9DEC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		48D860482BB0D7BF0092EF79 /* build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build.sh; sourceTree = "<group>"; };
 		48D860492BB0DD110092EF79 /* ValidationData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationData.swift; sourceTree = "<group>"; };
 		48D8604E2BB1B8EB0092EF79 /* Relay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Relay.swift; sourceTree = "<group>"; };
@@ -67,6 +72,7 @@
 		480989A02BB0C01900B49AE8 /* ValidationRelay */ = {
 			isa = PBXGroup;
 			children = (
+				48D289162BB374FA00EA9DEC /* Info.plist */,
 				480989B42BB0D16400B49AE8 /* ValidationRelay.entitlements */,
 				480989B22BB0C0F800B49AE8 /* absd.defs */,
 				480989A12BB0C01900B49AE8 /* ValidationRelayApp.swift */,
@@ -76,6 +82,8 @@
 				480989AF2BB0C0AF00B49AE8 /* ValidationRelay-Bridging-Header.h */,
 				48D860492BB0DD110092EF79 /* ValidationData.swift */,
 				48D8604E2BB1B8EB0092EF79 /* Relay.swift */,
+				48D289122BB3743F00EA9DEC /* ApplicationMonitor.swift */,
+				48D289142BB3745000EA9DEC /* LocationManager.swift */,
 			);
 			path = ValidationRelay;
 			sourceTree = "<group>";
@@ -174,7 +182,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				48D8604A2BB0DD110092EF79 /* ValidationData.swift in Sources */,
+				48D289132BB3743F00EA9DEC /* ApplicationMonitor.swift in Sources */,
 				480989B32BB0C19300B49AE8 /* absd.defs in Sources */,
+				48D289152BB3745000EA9DEC /* LocationManager.swift in Sources */,
 				480989A42BB0C01900B49AE8 /* ContentView.swift in Sources */,
 				480989A22BB0C01900B49AE8 /* ValidationRelayApp.swift in Sources */,
 				48D8604F2BB1B8EB0092EF79 /* Relay.swift in Sources */,
@@ -315,6 +325,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"ValidationRelay/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ValidationRelay/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -326,7 +337,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.jjtech.experiments.ValidationRelay;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -351,6 +362,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"ValidationRelay/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ValidationRelay/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -362,7 +374,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.jjtech.experiments.ValidationRelay;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
