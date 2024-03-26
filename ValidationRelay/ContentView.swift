@@ -11,7 +11,7 @@ struct ContentView: View {
     //@State private var registrationCode = "Not Connected"
     //@State private var connectionStatusMessage = ""
     
-    @State private var wantRelayConnected = false // TODO: Come up with a method to auto connect
+    @AppStorage("autoConnect") private var wantRelayConnected = false // TODO: Come up with a method to auto connect
     
     @AppStorage("selectedRelay") private var selectedRelay = "Beeper"
     @AppStorage("customRelayURL") private var customRelayURL = ""
@@ -22,6 +22,13 @@ struct ContentView: View {
 //    init() {
 //        relayConnectionManager = RelayConnectionManager(registrationCodeBinding: $registrationCode, connectionStatusMessageBinding: $connectionStatusMessage)
 //    }
+    
+    init(relayConnectionManager: RelayConnectionManager) {
+        self.relayConnectionManager = relayConnectionManager
+        if wantRelayConnected {
+            relayConnectionManager.connect(getCurrentRelayURL())
+        }
+    }
     
     func getCurrentRelayURL() -> URL {
         if selectedRelay == "Custom" {
