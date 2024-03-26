@@ -43,9 +43,9 @@ class RelayConnectionManager: WebSocketConnectionDelegate, ObservableObject {
     @Published var connectionStatusMessage: String = ""
     
     // These must all be saved together
-    @AppStorage("savedRegistrationSecret") var savedRegistrationSecret = ""
-    @AppStorage("savedRegistrationCode") var savedRegistrationCode = ""
-    @AppStorage("savedRegistrationURL") var savedRegistrationURL = ""
+    @AppStorage("savedRegistrationSecret") public var savedRegistrationSecret = ""
+    @AppStorage("savedRegistrationCode") public var savedRegistrationCode = ""
+    @AppStorage("savedRegistrationURL") public var savedRegistrationURL = ""
     
     var currentURL: URL? = nil
     
@@ -55,6 +55,7 @@ class RelayConnectionManager: WebSocketConnectionDelegate, ObservableObject {
         let connection = NWWebSocket(url: url, connectAutomatically: true)
         connection.delegate = self
         connection.connect()
+        connection.ping(interval: 30)
         self.connection = connection
         //print(getIdentifiers())
     }

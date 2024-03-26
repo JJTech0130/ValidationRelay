@@ -86,11 +86,14 @@ struct ContentView: View {
                     
             Section {
                 Button("Reset Registration Code") {
-                    // Do reset stuff
+                    relayConnectionManager.savedRegistrationURL = ""
+                    relayConnectionManager.savedRegistrationCode = ""
+                    relayConnectionManager.savedRegistrationSecret = ""
+                    relayConnectionManager.registrationCode = "None"
+                    wantRelayConnected = false
                 }
-                    //.foregroundColor(.red)
+                    .foregroundColor(.red)
                     .frame(maxWidth: .infinity)
-                    .disabled(true)
             } footer: {
                 Text("You will need to re-enter the code on your other devices")
             }
