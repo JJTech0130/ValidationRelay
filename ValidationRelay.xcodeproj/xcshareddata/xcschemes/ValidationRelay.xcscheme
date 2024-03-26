@@ -39,17 +39,8 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <PreActions>
-         <ExecutionAction
-            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
-            <ActionContent
-               title = "Run Script"
-               scriptText = "# Type a script or drag a script file from your workspace to insert its path.&#10;/Users/jjtech/Desktop/ValidationRelay/build.sh&#10;"
-               shellToInvoke = "/usr/bin/env bash">
-            </ActionContent>
-         </ExecutionAction>
-      </PreActions>
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4809899D2BB0C01900B49AE8"
@@ -57,7 +48,7 @@
             BlueprintName = "ValidationRelay"
             ReferencedContainer = "container:ValidationRelay.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

@@ -7,6 +7,22 @@
 
 import Foundation
 
+//struct ValidationSession {
+//    init() {
+//        // Setup session, make request
+//    }
+//    
+//    var expiry: Date {
+//        get {
+//            return Date()
+//        }
+//    }
+//    
+//    func sign(_ data: Data = Data()) -> Data {
+//        return Data()
+//    }
+//}
+
 /// Makes an HTTP request to http://static.ess.apple.com/identity/validation/cert-1.0.plist
 /// parses the plist and extracts the raw certificate data
 func getCertificate() -> Data {
@@ -39,7 +55,7 @@ func initializeValidation(_ request: Data) -> Data {
     return sessionInfo
 }
 
-func test() {
+func generateValidationData() -> Data {
     let cert: Data = getCertificate()
     var val_ctx: UInt64 = 0
     var session_req: NSData? = NSData()
@@ -60,5 +76,6 @@ func test() {
     
     NSLog("VALIDATION DATA \(signature!.base64EncodedString())")
     
-    
+    return signature! as Data
 }
+

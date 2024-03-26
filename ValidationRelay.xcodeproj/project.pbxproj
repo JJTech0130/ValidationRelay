@@ -12,20 +12,25 @@
 		480989A62BB0C01A00B49AE8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 480989A52BB0C01A00B49AE8 /* Assets.xcassets */; };
 		480989A92BB0C01A00B49AE8 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 480989A82BB0C01A00B49AE8 /* Preview Assets.xcassets */; };
 		480989B32BB0C19300B49AE8 /* absd.defs in Sources */ = {isa = PBXBuildFile; fileRef = 480989B22BB0C0F800B49AE8 /* absd.defs */; settings = {ATTRIBUTES = (Client, ); }; };
+		48D289112BB3579000EA9DEC /* libMobileGestalt.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 48D289102BB3579000EA9DEC /* libMobileGestalt.tbd */; };
 		48D8604A2BB0DD110092EF79 /* ValidationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D860492BB0DD110092EF79 /* ValidationData.swift */; };
+		48D8604D2BB1B8CC0092EF79 /* NWWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 48D8604C2BB1B8CC0092EF79 /* NWWebSocket */; };
+		48D8604F2BB1B8EB0092EF79 /* Relay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D8604E2BB1B8EB0092EF79 /* Relay.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		4809899E2BB0C01900B49AE8 /* ValidationRelay.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ValidationRelay.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		480989A12BB0C01900B49AE8 /* ValidationRelayApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationRelayApp.swift; sourceTree = "<group>"; };
-		480989A32BB0C01900B49AE8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		480989A32BB0C01900B49AE8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; usesTabs = 0; };
 		480989A52BB0C01A00B49AE8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		480989A82BB0C01A00B49AE8 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		480989AF2BB0C0AF00B49AE8 /* ValidationRelay-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ValidationRelay-Bridging-Header.h"; sourceTree = "<group>"; };
 		480989B22BB0C0F800B49AE8 /* absd.defs */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.mig; path = absd.defs; sourceTree = "<group>"; };
 		480989B42BB0D16400B49AE8 /* ValidationRelay.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ValidationRelay.entitlements; sourceTree = "<group>"; };
+		48D289102BB3579000EA9DEC /* libMobileGestalt.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libMobileGestalt.tbd; path = usr/lib/libMobileGestalt.tbd; sourceTree = SDKROOT; };
 		48D860482BB0D7BF0092EF79 /* build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build.sh; sourceTree = "<group>"; };
 		48D860492BB0DD110092EF79 /* ValidationData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationData.swift; sourceTree = "<group>"; };
+		48D8604E2BB1B8EB0092EF79 /* Relay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Relay.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -33,6 +38,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				48D289112BB3579000EA9DEC /* libMobileGestalt.tbd in Frameworks */,
+				48D8604D2BB1B8CC0092EF79 /* NWWebSocket in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -45,6 +52,7 @@
 				48D860482BB0D7BF0092EF79 /* build.sh */,
 				480989A02BB0C01900B49AE8 /* ValidationRelay */,
 				4809899F2BB0C01900B49AE8 /* Products */,
+				48D2890F2BB3579000EA9DEC /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -67,6 +75,7 @@
 				480989A72BB0C01A00B49AE8 /* Preview Content */,
 				480989AF2BB0C0AF00B49AE8 /* ValidationRelay-Bridging-Header.h */,
 				48D860492BB0DD110092EF79 /* ValidationData.swift */,
+				48D8604E2BB1B8EB0092EF79 /* Relay.swift */,
 			);
 			path = ValidationRelay;
 			sourceTree = "<group>";
@@ -77,6 +86,14 @@
 				480989A82BB0C01A00B49AE8 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		48D2890F2BB3579000EA9DEC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				48D289102BB3579000EA9DEC /* libMobileGestalt.tbd */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -95,6 +112,9 @@
 			dependencies = (
 			);
 			name = ValidationRelay;
+			packageProductDependencies = (
+				48D8604C2BB1B8CC0092EF79 /* NWWebSocket */,
+			);
 			productName = ValidationRelay;
 			productReference = 4809899E2BB0C01900B49AE8 /* ValidationRelay.app */;
 			productType = "com.apple.product-type.application";
@@ -124,6 +144,9 @@
 				Base,
 			);
 			mainGroup = 480989952BB0C01900B49AE8;
+			packageReferences = (
+				48D8604B2BB1B8CC0092EF79 /* XCRemoteSwiftPackageReference "NWWebSocket" */,
+			);
 			productRefGroup = 4809899F2BB0C01900B49AE8 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -154,6 +177,7 @@
 				480989B32BB0C19300B49AE8 /* absd.defs in Sources */,
 				480989A42BB0C01900B49AE8 /* ContentView.swift in Sources */,
 				480989A22BB0C01900B49AE8 /* ValidationRelayApp.swift in Sources */,
+				48D8604F2BB1B8EB0092EF79 /* Relay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -374,6 +398,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		48D8604B2BB1B8CC0092EF79 /* XCRemoteSwiftPackageReference "NWWebSocket" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pusher/NWWebSocket.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.5.4;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		48D8604C2BB1B8CC0092EF79 /* NWWebSocket */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 48D8604B2BB1B8CC0092EF79 /* XCRemoteSwiftPackageReference "NWWebSocket" */;
+			productName = NWWebSocket;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 480989962BB0C01900B49AE8 /* Project object */;
 }

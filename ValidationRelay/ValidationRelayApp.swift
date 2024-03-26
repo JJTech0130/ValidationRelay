@@ -11,7 +11,7 @@ import SwiftUI
 struct ValidationRelayApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(relayConnectionManager: RelayConnectionManager())
         }
     }
 }
