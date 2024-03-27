@@ -75,6 +75,7 @@ class RelayConnectionManager: WebSocketConnectionDelegate, ObservableObject {
         if currentURL?.absoluteString == savedRegistrationURL {
             print("Using saved registration code")
             logItems.log("Using saved registration code \(savedRegistrationCode)")
+            logItems.log("Using saved registration secret \(savedRegistrationSecret)")
             registerCommand["data"] = ["code": savedRegistrationCode, "secret": savedRegistrationSecret]
         }
         let data = try! JSONSerialization.data(withJSONObject: registerCommand)
@@ -87,6 +88,10 @@ class RelayConnectionManager: WebSocketConnectionDelegate, ObservableObject {
         // Check if "error" is in the current status message, if so don't clear it
         if !connectionStatusMessage.contains("Error") {
             connectionStatusMessage = ""
+        }
+        if currentURL != nil {
+            logItems.log("Was not a clean disconnect, reconnecting")
+            connect(currentURL!)
         }
     }
 
@@ -124,6 +129,7 @@ class RelayConnectionManager: WebSocketConnectionDelegate, ObservableObject {
                         registrationCode = code
                         if savedRegistrationCode != code {
                             logItems.log("New registration code \(code)")
+                            logItems.log("secret \(data["secret"] as? String ?? "")")
                         }
                         savedRegistrationCode = code
                         savedRegistrationSecret = data["secret"] as? String ?? ""

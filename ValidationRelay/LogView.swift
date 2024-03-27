@@ -32,6 +32,7 @@ struct LogView: View {
                 HStack {
                     Text(item.message)
                         .foregroundColor(item.isError ? .red : .primary)
+                        .lineLimit(4)
                     Spacer()
                     Text(item.date, style: .time)
                         .font(.caption)
@@ -47,15 +48,31 @@ struct LogView: View {
                         logItems.items = []
                     }
                 }
+                // Export log button
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    // Pop up a share sheet, use share sheet icon for button
+                    Button(action: {
+                        // Create a string of the log items
+                        let logString = logItems.items.map { item in
+                            "\(item.date): \(item.message)"
+                        }.joined(separator: "\n")
+                        let av = UIActivityViewController(activityItems: [logString], applicationActivities: nil)
+                        UIApplication.shared.windows.first?.rootViewController?.present(av, animated: true, completion: nil)
+                    }) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                }
             }
     }
 }
 
 #Preview {
-    LogView(logItems: {
-        let testLog = LogItems()
-        testLog.log("Test message")
-        testLog.log("Test error", isError: true)
-        return testLog
-    }())
+    NavigationView {
+        LogView(logItems: {
+            let testLog = LogItems()
+            testLog.log("Test message")
+            testLog.log("Test error", isError: true)
+            return testLog
+        }())
+    }
 }
