@@ -31,7 +31,7 @@ struct LogView: View {
             ForEach(logItems.items, id: \.self) { item in
                 HStack {
                     Text(item.message)
-                        .foregroundColor(item.isError ? .red : .black)
+                        .foregroundColor(item.isError ? .red : .primary)
                     Spacer()
                     Text(item.date, style: .time)
                         .font(.caption)
