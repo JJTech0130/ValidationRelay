@@ -48,66 +48,76 @@ struct ContentView: View {
     }
     
     var body: some View {
-        List {
-            Section {
-                Toggle("Relay", isOn: $wantRelayConnected)
-                    .onChange(of: wantRelayConnected) { newValue in
-                        // Connect or disconnect the relay
-                        if newValue {
-                            relayConnectionManager.connect(getCurrentRelayURL())
-                        } else {
-                            relayConnectionManager.disconnect()
+        NavigationView {
+            List {
+                Section {
+                    Toggle("Relay", isOn: $wantRelayConnected)
+                        .onChange(of: wantRelayConnected) { newValue in
+                            // Connect or disconnect the relay
+                            if newValue {
+                                relayConnectionManager.connect(getCurrentRelayURL())
+                            } else {
+                                relayConnectionManager.disconnect()
+                            }
                         }
+                    HStack {
+                        Text("Registration Code")
+                        Spacer()
+                        Text(relayConnectionManager.registrationCode)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
                     }
-                HStack {
-                    Text("Registration Code")
-                    Spacer()
-                    Text(relayConnectionManager.registrationCode)
-                        .foregroundColor(.secondary)
+                } footer: {
+                    Text(relayConnectionManager.connectionStatusMessage)
                 }
-            } footer: {
-                Text(relayConnectionManager.connectionStatusMessage)
-            }
-            Section {
-                //Toggle("Run in Background", isOn: .constant(false))
-                //    .disabled(true)
-                Picker("Relay", selection: $selectedRelay) {
-                    Text("Beeper").tag("Beeper")
-                    //Text("pypush").tag("pypush")
-                    Text("Custom").tag("Custom")
+                Section {
+                    //Toggle("Run in Background", isOn: .constant(false))
+                    //    .disabled(true)
+                    Picker("Relay", selection: $selectedRelay) {
+                        Text("Beeper").tag("Beeper")
+                        //Text("pypush").tag("pypush")
+                        Text("Custom").tag("Custom")
+                    }
+                    .pickerStyle(.segmented)
+                    .onChange(of: selectedRelay) { newValue in
+                        // Disconnect when the user is switching relay servers
+                        wantRelayConnected = false
+                    }
+                    if (selectedRelay == "Custom") {
+                        TextField("Custom Relay Server URL", text: $customRelayURL)
+                            .textContentType(.URL)
+                            .autocorrectionDisabled()
+                            .autocapitalization(.none)
+                    }
+                } header: {
+                    Text("Connection settings")
+                } footer: {
+                    Text("Beeper's relay server is recommended for most users")
                 }
-                .pickerStyle(.segmented)
-                .onChange(of: selectedRelay) { newValue in
-                    // Disconnect when the user is switching relay servers
-                    wantRelayConnected = false
-                }
-                if (selectedRelay == "Custom") {
-                    TextField("Custom Relay Server URL", text: $customRelayURL)
-                        .textContentType(.URL)
-                        .autocorrectionDisabled()
-                        .autocapitalization(.none)
-                }
-            } header: {
-               Text("Connection settings")
-            } footer: {
-                Text("Beeper's relay server is recommended for most users")
-            }
-                    
-            Section {
-                Button("Reset Registration Code") {
-                    relayConnectionManager.savedRegistrationURL = ""
-                    relayConnectionManager.savedRegistrationCode = ""
-                    relayConnectionManager.savedRegistrationSecret = ""
-                    relayConnectionManager.registrationCode = "None"
-                    wantRelayConnected = false
-                }
+                
+                Section {
+                    // Navigation to Log page
+                    NavigationLink(destination: LogView(logItems: relayConnectionManager.logItems)) {
+                        Text("Log")
+                    }
+                    Button("Reset Registration Code") {
+                        relayConnectionManager.savedRegistrationURL = ""
+                        relayConnectionManager.savedRegistrationCode = ""
+                        relayConnectionManager.savedRegistrationSecret = ""
+                        relayConnectionManager.registrationCode = "None"
+                        wantRelayConnected = false
+                    }
                     .foregroundColor(.red)
                     .frame(maxWidth: .infinity)
-            } footer: {
-                Text("You will need to re-enter the code on your other devices")
+                } footer: {
+                    Text("You will need to re-enter the code on your other devices")
+                }
             }
+            .listStyle(.grouped)
+            .navigationBarHidden(true)
+            .navigationBarTitle("", displayMode: .inline)
         }
-        .listStyle(.grouped)
+        
     }
 
 }

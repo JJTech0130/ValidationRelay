@@ -41,6 +41,7 @@ class RelayConnectionManager: WebSocketConnectionDelegate, ObservableObject {
     
     @Published var registrationCode: String = "None"
     @Published var connectionStatusMessage: String = ""
+    @Published var logItems = LogItems()
     
     // These must all be saved together
     @AppStorage("savedRegistrationSecret") public var savedRegistrationSecret = ""
@@ -50,6 +51,7 @@ class RelayConnectionManager: WebSocketConnectionDelegate, ObservableObject {
     var currentURL: URL? = nil
     
     func connect(_ url: URL) {
+        logItems.log("Connecting to \(url)")
         connectionStatusMessage = "Connecting..."
         currentURL = url
         let connection = NWWebSocket(url: url, connectAutomatically: true)
@@ -61,15 +63,18 @@ class RelayConnectionManager: WebSocketConnectionDelegate, ObservableObject {
     }
     
     func disconnect() {
+        logItems.log("Disconnecting on request")
         connection?.disconnect(closeCode: .protocolCode(.normalClosure))
         currentURL = nil
     }
     
     func webSocketDidConnect(connection: WebSocketConnection) {
+        logItems.log("Websocket did connect")
         connectionStatusMessage = "Connected"
         var registerCommand = ["command": "register", "data": ["": ""]] as [String : Any]
         if currentURL?.absoluteString == savedRegistrationURL {
             print("Using saved registration code")
+            logItems.log("Using saved registration code \(savedRegistrationCode)")
             registerCommand["data"] = ["code": savedRegistrationCode, "secret": savedRegistrationSecret]
         }
         let data = try! JSONSerialization.data(withJSONObject: registerCommand)
@@ -77,6 +82,7 @@ class RelayConnectionManager: WebSocketConnectionDelegate, ObservableObject {
         connection.send(string: String(data: data, encoding: .utf8)!)
     }
     func webSocketDidDisconnect(connection: WebSocketConnection, closeCode: NWProtocolWebSocket.CloseCode, reason: Data?) {
+        logItems.log("Websocket did disconnect", isError: true)
         print("Disconnected")
         // Check if "error" is in the current status message, if so don't clear it
         if !connectionStatusMessage.contains("Error") {
@@ -97,6 +103,7 @@ class RelayConnectionManager: WebSocketConnectionDelegate, ObservableObject {
 
     func webSocketDidReceiveError(connection: WebSocketConnection, error: NWError) {
         print(error)
+        logItems.log("Websocket error: \(error)", isError: true)
         connectionStatusMessage = "Error connecting to relay: \(error)"
     }
 
@@ -115,6 +122,9 @@ class RelayConnectionManager: WebSocketConnectionDelegate, ObservableObject {
                 if let data = jsonDict["data"] as? [String: Any] {
                     if let code = data["code"] as? String {
                         registrationCode = code
+                        if savedRegistrationCode != code {
+                            logItems.log("New registration code \(code)")
+                        }
                         savedRegistrationCode = code
                         savedRegistrationSecret = data["secret"] as? String ?? ""
                         savedRegistrationURL = currentURL?.absoluteString ?? ""
@@ -124,6 +134,7 @@ class RelayConnectionManager: WebSocketConnectionDelegate, ObservableObject {
                     if command == "get-version-info" {
                         let versionInfo = ["command": "response", "data": ["versions": getIdentifiers()], "id": jsonDict["id"]!] as [String : Any]
                         print("Sending version info: \(versionInfo)")
+                        logItems.log("Sending version info: \(versionInfo)")
                         let data = try! JSONSerialization.data(withJSONObject: versionInfo)
                         connection.send(string: String(data: data, encoding: .utf8)!)
                     }
@@ -131,6 +142,7 @@ class RelayConnectionManager: WebSocketConnectionDelegate, ObservableObject {
                         print("Sending val data")
                         let v = generateValidationData()
                         print("Validation data: \(v.base64EncodedString())")
+                        logItems.log("Generated validation data: \(v.base64EncodedString())")
                         let validationData = ["command": "response", "data": ["data": v.base64EncodedString()], "id": jsonDict["id"]!] as [String : Any]
                         let data = try! JSONSerialization.data(withJSONObject: validationData)
                         connection.send(string: String(data: data, encoding: .utf8)!)
