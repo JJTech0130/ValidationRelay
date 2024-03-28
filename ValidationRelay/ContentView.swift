@@ -8,29 +8,19 @@
 import SwiftUI
 
 struct ContentView: View {
-    //@State private var registrationCode = "Not Connected"
-    //@State private var connectionStatusMessage = ""
-    
-    @AppStorage("autoConnect") private var wantRelayConnected = false // TODO: Come up with a method to auto connect
+    @AppStorage("autoConnect") private var wantRelayConnected = false
     
     @AppStorage("selectedRelay") private var selectedRelay = "Beeper"
     @AppStorage("customRelayURL") private var customRelayURL = ""
     
-    //private var relayConnectionManager: RelayConnectionManager? = nil
     @ObservedObject var relayConnectionManager: RelayConnectionManager
-    
-    var appMon = ApplicationMonitor()
-    
-//    init() {
-//        relayConnectionManager = RelayConnectionManager(registrationCodeBinding: $registrationCode, connectionStatusMessageBinding: $connectionStatusMessage)
-//    }
     
     init(relayConnectionManager: RelayConnectionManager) {
         self.relayConnectionManager = relayConnectionManager
         if wantRelayConnected {
             relayConnectionManager.connect(getCurrentRelayURL())
         }
-        appMon.start()
+        ApplicationMonitor.shared.start()
     }
     
     func getCurrentRelayURL() -> URL {
