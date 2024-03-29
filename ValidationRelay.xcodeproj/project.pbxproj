@@ -19,7 +19,44 @@
 		48D8604A2BB0DD110092EF79 /* ValidationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D860492BB0DD110092EF79 /* ValidationData.swift */; };
 		48D8604D2BB1B8CC0092EF79 /* NWWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 48D8604C2BB1B8CC0092EF79 /* NWWebSocket */; };
 		48D8604F2BB1B8EB0092EF79 /* Relay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D8604E2BB1B8EB0092EF79 /* Relay.swift */; };
+		48FDC8682BB74BAD00E60447 /* TestFlightServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 48FDC8612BB74BAD00E60447 /* TestFlightServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		48FDC86D2BB74C4400E60447 /* AppStoreDaemon.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 48FDC8382BB7348400E60447 /* AppStoreDaemon.tbd */; };
+		48FDC86E2BB74C5600E60447 /* TestFlightServiceExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48FDC8312BB733A900E60447 /* TestFlightServiceExtension.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		48FDC8662BB74BAD00E60447 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 480989962BB0C01900B49AE8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 48FDC8602BB74BAD00E60447;
+			remoteInfo = TestFlightServiceExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		48FDC8402BB7357A00E60447 /* Embed ExtensionKit Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(EXTENSIONS_FOLDER_PATH)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			name = "Embed ExtensionKit Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		48FDC86C2BB74BAD00E60447 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				48FDC8682BB74BAD00E60447 /* TestFlightServiceExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		4809899E2BB0C01900B49AE8 /* ValidationRelay.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ValidationRelay.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -38,6 +75,11 @@
 		48D860482BB0D7BF0092EF79 /* build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build.sh; sourceTree = "<group>"; };
 		48D860492BB0DD110092EF79 /* ValidationData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationData.swift; sourceTree = "<group>"; };
 		48D8604E2BB1B8EB0092EF79 /* Relay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Relay.swift; sourceTree = "<group>"; };
+		48FDC8312BB733A900E60447 /* TestFlightServiceExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestFlightServiceExtension.swift; sourceTree = "<group>"; };
+		48FDC8332BB733A900E60447 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		48FDC8382BB7348400E60447 /* AppStoreDaemon.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = AppStoreDaemon.tbd; path = TestFlightServiceExtension/AppStoreDaemon.tbd; sourceTree = "<group>"; };
+		48FDC83A2BB734D500E60447 /* TestFlightServiceExtension-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TestFlightServiceExtension-Bridging-Header.h"; sourceTree = "<group>"; };
+		48FDC8612BB74BAD00E60447 /* TestFlightServiceExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TestFlightServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -50,6 +92,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		48FDC85E2BB74BAD00E60447 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				48FDC86D2BB74C4400E60447 /* AppStoreDaemon.tbd in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -58,6 +108,7 @@
 			children = (
 				48D860482BB0D7BF0092EF79 /* build.sh */,
 				480989A02BB0C01900B49AE8 /* ValidationRelay */,
+				48FDC8302BB733A900E60447 /* TestFlightServiceExtension */,
 				4809899F2BB0C01900B49AE8 /* Products */,
 				48D2890F2BB3579000EA9DEC /* Frameworks */,
 			);
@@ -67,6 +118,7 @@
 			isa = PBXGroup;
 			children = (
 				4809899E2BB0C01900B49AE8 /* ValidationRelay.app */,
+				48FDC8612BB74BAD00E60447 /* TestFlightServiceExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -102,9 +154,20 @@
 		48D2890F2BB3579000EA9DEC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				48FDC8382BB7348400E60447 /* AppStoreDaemon.tbd */,
 				48D289102BB3579000EA9DEC /* libMobileGestalt.tbd */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		48FDC8302BB733A900E60447 /* TestFlightServiceExtension */ = {
+			isa = PBXGroup;
+			children = (
+				48FDC8312BB733A900E60447 /* TestFlightServiceExtension.swift */,
+				48FDC8332BB733A900E60447 /* Info.plist */,
+				48FDC83A2BB734D500E60447 /* TestFlightServiceExtension-Bridging-Header.h */,
+			);
+			path = TestFlightServiceExtension;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -117,10 +180,13 @@
 				4809899A2BB0C01900B49AE8 /* Sources */,
 				4809899B2BB0C01900B49AE8 /* Frameworks */,
 				4809899C2BB0C01900B49AE8 /* Resources */,
+				48FDC8402BB7357A00E60447 /* Embed ExtensionKit Extensions */,
+				48FDC86C2BB74BAD00E60447 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				48FDC8672BB74BAD00E60447 /* PBXTargetDependency */,
 			);
 			name = ValidationRelay;
 			packageProductDependencies = (
@@ -129,6 +195,23 @@
 			productName = ValidationRelay;
 			productReference = 4809899E2BB0C01900B49AE8 /* ValidationRelay.app */;
 			productType = "com.apple.product-type.application";
+		};
+		48FDC8602BB74BAD00E60447 /* TestFlightServiceExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 48FDC8692BB74BAD00E60447 /* Build configuration list for PBXNativeTarget "TestFlightServiceExtension" */;
+			buildPhases = (
+				48FDC85D2BB74BAD00E60447 /* Sources */,
+				48FDC85E2BB74BAD00E60447 /* Frameworks */,
+				48FDC85F2BB74BAD00E60447 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TestFlightServiceExtension;
+			productName = TestFlightServiceExtension;
+			productReference = 48FDC8612BB74BAD00E60447 /* TestFlightServiceExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -143,6 +226,9 @@
 					4809899D2BB0C01900B49AE8 = {
 						CreatedOnToolsVersion = 15.2;
 						LastSwiftMigration = 1520;
+					};
+					48FDC8602BB74BAD00E60447 = {
+						CreatedOnToolsVersion = 15.2;
 					};
 				};
 			};
@@ -163,6 +249,7 @@
 			projectRoot = "";
 			targets = (
 				4809899D2BB0C01900B49AE8 /* ValidationRelay */,
+				48FDC8602BB74BAD00E60447 /* TestFlightServiceExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -174,6 +261,13 @@
 			files = (
 				480989A92BB0C01A00B49AE8 /* Preview Assets.xcassets in Resources */,
 				480989A62BB0C01A00B49AE8 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		48FDC85F2BB74BAD00E60447 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -195,7 +289,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		48FDC85D2BB74BAD00E60447 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				48FDC86E2BB74C5600E60447 /* TestFlightServiceExtension.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		48FDC8672BB74BAD00E60447 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 48FDC8602BB74BAD00E60447 /* TestFlightServiceExtension */;
+			targetProxy = 48FDC8662BB74BAD00E60447 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		480989AA2BB0C01A00B49AE8 /* Debug */ = {
@@ -322,6 +432,7 @@
 		480989AD2BB0C01A00B49AE8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
@@ -332,6 +443,9 @@
 				INFOPLIST_FILE = ValidationRelay/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Relay;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Keep ValidationRelay alive in the background";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "Keep ValidationRelay alive in the background";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Keep ValidationRelay alive in the background";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -342,8 +456,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.jjtech.experiments.ValidationRelay;
+				MARKETING_VERSION = 1.5;
+				PRODUCT_BUNDLE_IDENTIFIER = com.apple.TestFlight;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -360,6 +474,7 @@
 		480989AE2BB0C01A00B49AE8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
@@ -370,6 +485,9 @@
 				INFOPLIST_FILE = ValidationRelay/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Relay;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Keep ValidationRelay alive in the background";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "Keep ValidationRelay alive in the background";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Keep ValidationRelay alive in the background";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -380,8 +498,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.jjtech.experiments.ValidationRelay;
+				MARKETING_VERSION = 1.5;
+				PRODUCT_BUNDLE_IDENTIFIER = com.apple.TestFlight;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -389,6 +507,74 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "ValidationRelay/ValidationRelay-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		48FDC86A2BB74BAD00E60447 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TestFlightServiceExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TestFlightServiceExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/TestFlightServiceExtension",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.apple.TestFlight.ServiceExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "TestFlightServiceExtension/TestFlightServiceExtension-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		48FDC86B2BB74BAD00E60447 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TestFlightServiceExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TestFlightServiceExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/TestFlightServiceExtension",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.apple.TestFlight.ServiceExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "TestFlightServiceExtension/TestFlightServiceExtension-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -411,6 +597,15 @@
 			buildConfigurations = (
 				480989AD2BB0C01A00B49AE8 /* Debug */,
 				480989AE2BB0C01A00B49AE8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		48FDC8692BB74BAD00E60447 /* Build configuration list for PBXNativeTarget "TestFlightServiceExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				48FDC86A2BB74BAD00E60447 /* Debug */,
+				48FDC86B2BB74BAD00E60447 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
