@@ -11,9 +11,6 @@ import NWWebSocket
 import SwiftUI
 
 func getIdentifiers() -> [String: String] {
-    // TODO: Don't fake these
-    // Use uname to get hardware version
-    // Use UIDevice to get software version
     var ustruct: utsname = utsname()
     uname(&ustruct)
     var ustruct2 = ustruct
@@ -35,6 +32,7 @@ func getIdentifiers() -> [String: String] {
     ]
     return identifiers
 }
+
 class RelayConnectionManager: WebSocketConnectionDelegate, ObservableObject {
     
     var connection: WebSocketConnection?

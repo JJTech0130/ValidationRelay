@@ -24,7 +24,6 @@
 		48A46F202BBF425E000407BE /* NWWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 48A46F132BBF425E000407BE /* NWWebSocket */; };
 		48A46F222BBF425E000407BE /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 480989A82BB0C01A00B49AE8 /* Preview Assets.xcassets */; };
 		48A46F232BBF425E000407BE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 480989A52BB0C01A00B49AE8 /* Assets.xcassets */; };
-		48A46F302BBF431D000407BE /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A46F2F2BBF431D000407BE /* KeyboardViewController.swift */; };
 		48A46F342BBF431D000407BE /* TestFlightServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 48A46F2D2BBF431D000407BE /* TestFlightServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		48A46F3B2BBF438D000407BE /* AppStoreDaemon.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 48A46F392BBF438D000407BE /* AppStoreDaemon.tbd */; };
 		48A46F3C2BBF438D000407BE /* FrontBoardServices.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 48A46F3A2BBF438D000407BE /* FrontBoardServices.tbd */; };
@@ -73,7 +72,6 @@
 		480989B42BB0D16400B49AE8 /* ValidationRelay.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ValidationRelay.entitlements; sourceTree = "<group>"; };
 		48A46F272BBF425E000407BE /* ValidationRelay TestFlight.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ValidationRelay TestFlight.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		48A46F2D2BBF431D000407BE /* TestFlightServiceExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TestFlightServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		48A46F2F2BBF431D000407BE /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
 		48A46F312BBF431D000407BE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		48A46F392BBF438D000407BE /* AppStoreDaemon.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = AppStoreDaemon.tbd; path = TestFlightServiceExtension/AppStoreDaemon.tbd; sourceTree = "<group>"; };
 		48A46F3A2BBF438D000407BE /* FrontBoardServices.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = FrontBoardServices.tbd; path = TestFlightServiceExtension/FrontBoardServices.tbd; sourceTree = "<group>"; };
@@ -160,7 +158,7 @@
 				48D289122BB3743F00EA9DEC /* ApplicationMonitor.swift */,
 				48D289142BB3745000EA9DEC /* LocationManager.swift */,
 				48D289172BB3A5A700EA9DEC /* LogView.swift */,
-			);
+				);
 			path = ValidationRelay;
 			sourceTree = "<group>";
 		};
@@ -176,7 +174,6 @@
 			isa = PBXGroup;
 			children = (
 				48A46F432BBF44E8000407BE /* TestFlightServiceExtension.entitlements */,
-				48A46F2F2BBF431D000407BE /* KeyboardViewController.swift */,
 				48A46F312BBF431D000407BE /* Info.plist */,
 				48A46F3D2BBF439B000407BE /* TestFlightServiceExtension-Bridging-Header.h */,
 				48A46F402BBF43D5000407BE /* TestFlightServiceExtension.swift */,
@@ -363,7 +360,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				48A46F412BBF43D5000407BE /* TestFlightServiceExtension.swift in Sources */,
-				48A46F302BBF431D000407BE /* KeyboardViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -505,6 +501,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ValidationRelay/ValidationRelay.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ValidationRelay/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
@@ -543,6 +540,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ValidationRelay/ValidationRelay.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ValidationRelay/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
@@ -581,9 +579,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ValidationRelay/ValidationRelay.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ValidationRelay/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"TESTFLIGHT=1",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ValidationRelay/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Relay;
@@ -602,6 +605,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.6;
+				OTHER_SWIFT_FLAGS = "\"-DTESTFLIGHT\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.apple.TestFlight;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -623,9 +627,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ValidationRelay/ValidationRelay.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ValidationRelay/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = "TESTFLIGHT=1";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ValidationRelay/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Relay;
@@ -644,6 +650,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.6;
+				OTHER_SWIFT_FLAGS = "\"-DTESTFLIGHT\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.apple.TestFlight;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -662,8 +669,9 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = TestFlightServiceExtension/TestFlightServiceExtension.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TestFlightServiceExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TestFlightServiceExtension;
@@ -681,6 +689,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.apple.TestFlight.ServiceExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -699,8 +708,9 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = TestFlightServiceExtension/TestFlightServiceExtension.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TestFlightServiceExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TestFlightServiceExtension;
@@ -718,6 +728,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.apple.TestFlight.ServiceExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
