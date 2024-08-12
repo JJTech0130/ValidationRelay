@@ -6,9 +6,14 @@
 //
 
 import SwiftUI
+import UpdateManager
 
 @main
 struct ValidationRelayApp: App {
+    init() {
+        UpdateManager.shared.checkForUpdates()
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView(relayConnectionManager: RelayConnectionManager())
