@@ -46,8 +46,12 @@ struct ContentView: View {
                             // Connect or disconnect the relay
                             if newValue {
                                 relayConnectionManager.connect(getCurrentRelayURL())
+                                // Prevent the screen from turning off
+                                UIApplication.shared.isIdleTimerDisabled = true
                             } else {
                                 relayConnectionManager.disconnect()
+                                // Allow the screen to turn off
+                                UIApplication.shared.isIdleTimerDisabled = false
                             }
                         }
                     HStack {
