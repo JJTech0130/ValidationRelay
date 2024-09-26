@@ -1,23 +1,25 @@
+<!-- Info.plist -->
+
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <!-- Location Usage Descriptions -->
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Keep ValidationRelay alive in the background</string>
     <key>NSLocationAlwaysUsageDescription</key>
     <string>Keep ValidationRelay alive in the background</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>Keep ValidationRelay alive in the background</string>
+    
+    <!-- Background Modes -->
     <key>UIBackgroundModes</key>
     <array>
         <string>location</string>
         <string>processing</string>
         <string>fetch</string>
+        <string>remote-notification</string>
     </array>
-    <key>NSAppTransportSecurity</key>
-    <dict>
-        <key>NSAllowsArbitraryLoads</key>
-        <true/>
-    </dict>
+    
+    
 </dict>
 </plist>
