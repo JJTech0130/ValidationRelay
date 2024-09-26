@@ -1,4 +1,8 @@
+// UpdateManager.swift
+
 import Foundation
+import UserNotifications
+import UIKit
 
 class UpdateManager {
     
@@ -6,25 +10,27 @@ class UpdateManager {
     
     private init() {}
     
-    func checkForUpdates() {
+    func checkForUpdates(completion: (() -> Void)? = nil) {
         guard let url = URL(string: "https://api.github.com/repos/JJTech0130/ValidationRelay/releases/latest") else {
             print("Invalid URL")
+            completion?()
             return
         }
         
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+        var request = URLRequest(url: url)
+        request.setValue("application/vnd.github.v3+json", forHTTPHeaderField: "Accept")
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            defer { completion?() }
             guard let data = data, error == nil else {
                 print("Error fetching update info: \(error?.localizedDescription ?? "Unknown error")")
                 return
             }
             
             do {
-                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                   let tagName = json["tag_name"] as? String {
-                    self.handleUpdate(version: tagName)
-                } else {
-                    print("Invalid JSON structure")
-                }
+                let decoder = JSONDecoder()
+                let releaseInfo = try decoder.decode(GitHubRelease.self, from: data)
+                self.handleUpdate(version: releaseInfo.tag_name)
             } catch {
                 print("Error parsing JSON: \(error.localizedDescription)")
             }
@@ -42,13 +48,31 @@ class UpdateManager {
         
         if version.compare(currentVersion, options: .numeric) == .orderedDescending {
             print("New version available: \(version)")
-            self.downloadAndUpdate()
+            DispatchQueue.main.async {
+                self.notifyUserAboutUpdate(version: version)
+            }
         } else {
             print("App is up to date")
         }
     }
     
-    private func downloadAndUpdate() {
+    private func notifyUserAboutUpdate(version: String) {
+        let content = UNMutableNotificationContent()
+        content.title = "Update Available"
+        content.body = "A new version (\(version)) is available. Tap to update."
+        content.sound = .default
+        content.categoryIdentifier = "UPDATE_CATEGORY"
+        
+        // Set up the notification action
+        let updateAction = UNNotificationAction(identifier: "UPDATE_NOW", title: "Update Now", options: [.foreground])
+        let category = UNNotificationCategory(identifier: "UPDATE_CATEGORY", actions: [updateAction], intentIdentifiers: [], options: [])
+        UNUserNotificationCenter.current().setNotificationCategories([category])
+        
+        let request = UNNotificationRequest(identifier: "UpdateAvailable", content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
+    }
+    
+    func downloadAndUpdate() {
         guard let url = URL(string: "https://github.com/JJTech0130/ValidationRelay/releases/latest/download/ValidationRelay.ipa") else {
             print("Invalid download URL")
             return
@@ -84,7 +108,7 @@ class UpdateManager {
         let args = ["install", url.path]
         
         var pid: pid_t = 0
-        let argv: [UnsafeMutablePointer<CChar>?] = args.map { $0.withCString(strdup) } + [nil]
+        let argv: [UnsafeMutablePointer<CChar>?] = [rootHelperPath.withCString(strdup)] + args.map { $0.withCString(strdup) } + [nil]
         
         let result = posix_spawn(&pid, rootHelperPath, nil, nil, argv, nil)
         
@@ -94,8 +118,23 @@ class UpdateManager {
             print("Error starting update installation: \(result)")
         }
         
-        for arg in argv {
+        for arg in argv where arg != nil {
             free(arg)
         }
     }
+    
+    // Background Fetch Support -WIP
+    
+    func performBackgroundFetch(completion: @escaping (UIBackgroundFetchResult) -> Void) {
+        checkForUpdates {
+            // Assuming updates are checked and handled
+            completion(.newData)
+        }
+    }
+}
+
+// GitHubRelease Model - WIP
+
+struct GitHubRelease: Decodable {
+    let tag_name: String
 }
