@@ -46,12 +46,19 @@ class RelayConnectionManager: ObservableObject {
     var currentURL: URL? = nil
     var connectionDelegate: RelayConnectionDelegate? = nil
     
-    //init() {}
+    var reconnectWork: DispatchWorkItem? = nil
+    
+    var backoff: Int = 2
 
     func connect(_ url: URL) {
         logItems.log("Connecting to \(url)")
         connectionStatusMessage = "Connecting..."
         currentURL = url
+        
+        backoff = 2 // Reset backoff
+        
+        reconnectWork?.cancel()
+        reconnectWork = nil
 
         connectionDelegate = RelayConnectionDelegate(manager: self)
     }
@@ -60,6 +67,9 @@ class RelayConnectionManager: ObservableObject {
         logItems.log("Disconnecting on request")
         connectionStatusMessage = ""
         currentURL = nil
+        
+        reconnectWork?.cancel()
+        reconnectWork = nil
         
         connectionDelegate?.disconnect()
         connectionDelegate = nil
@@ -71,10 +81,19 @@ class RelayConnectionManager: ObservableObject {
         // Delete the delegate so that more errors don't come in
         connectionDelegate?.disconnect()
         connectionDelegate = nil
-        // Wait a bit then try again
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        print("Waiting for \(backoff) backoff seconds")
+        
+        reconnectWork?.cancel()
+        reconnectWork = nil
+        
+        let work = DispatchWorkItem {
             self.connectionDelegate = RelayConnectionDelegate(manager: self)
         }
+        // Wait a bit then try again
+        DispatchQueue.main.asyncAfter(deadline: .now() + DispatchTimeInterval.seconds(backoff), execute: work)
+        
+        reconnectWork = work
+        backoff *= 2
     }
 }
 
