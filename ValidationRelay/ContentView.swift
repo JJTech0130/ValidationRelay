@@ -93,6 +93,10 @@ struct ContentView: View {
                     NavigationLink(destination: LogView(logItems: relayConnectionManager.logItems)) {
                         Text("Log")
                     }
+                    Button("Dim Display") {
+                        UIScreen.main.brightness = 0.0
+                        UIScreen.main.wantsSoftwareDimming = true
+                    }
                     Toggle("Keep Awake", isOn: $keepAwake)
                         .onChange(of: keepAwake) { newValue in
                             if keepAwake {
@@ -101,10 +105,6 @@ struct ContentView: View {
                                 UIApplication.shared.isIdleTimerDisabled = false
                             }
                         }
-                    Button("Dim Display") {
-                        UIScreen.main.brightness = 0.0
-                        UIScreen.main.wantsSoftwareDimming = true
-                    }
                     Button("Reset Registration Code") {
                         relayConnectionManager.savedRegistrationURL = ""
                         relayConnectionManager.savedRegistrationCode = ""
