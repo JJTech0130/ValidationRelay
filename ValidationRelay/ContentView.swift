@@ -101,6 +101,10 @@ struct ContentView: View {
                                 UIApplication.shared.isIdleTimerDisabled = false
                             }
                         }
+                    Button("Dim Display") {
+                        UIScreen.main.brightness = 0.0
+                        UIScreen.main.wantsSoftwareDimming = true
+                    }
                     Button("Reset Registration Code") {
                         relayConnectionManager.savedRegistrationURL = ""
                         relayConnectionManager.savedRegistrationCode = ""
