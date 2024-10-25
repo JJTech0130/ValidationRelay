@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @AppStorage("autoConnect") private var wantRelayConnected = false
+    @AppStorage("keepAwake") private var keepAwake = true
     
     @AppStorage("selectedRelay") private var selectedRelay = "Beeper"
     @AppStorage("customRelayURL") private var customRelayURL = ""
@@ -20,7 +21,9 @@ struct ContentView: View {
         if wantRelayConnected {
             relayConnectionManager.connect(getCurrentRelayURL())
         }
-        ApplicationMonitor.shared.start()
+        if keepAwake {
+            UIApplication.shared.isIdleTimerDisabled = true
+        }
     }
     
     func getCurrentRelayURL() -> URL {
@@ -90,6 +93,14 @@ struct ContentView: View {
                     NavigationLink(destination: LogView(logItems: relayConnectionManager.logItems)) {
                         Text("Log")
                     }
+                    Toggle("Keep Awake", isOn: $keepAwake)
+                        .onChange(of: keepAwake) { newValue in
+                            if keepAwake {
+                                UIApplication.shared.isIdleTimerDisabled = true
+                            } else {
+                                UIApplication.shared.isIdleTimerDisabled = false
+                            }
+                        }
                     Button("Reset Registration Code") {
                         relayConnectionManager.savedRegistrationURL = ""
                         relayConnectionManager.savedRegistrationCode = ""
