@@ -247,4 +247,3 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
         print(data)
     }
 }
-

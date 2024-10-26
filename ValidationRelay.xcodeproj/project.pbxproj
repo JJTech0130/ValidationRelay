@@ -12,54 +12,12 @@
 		480989A62BB0C01A00B49AE8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 480989A52BB0C01A00B49AE8 /* Assets.xcassets */; };
 		480989A92BB0C01A00B49AE8 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 480989A82BB0C01A00B49AE8 /* Preview Assets.xcassets */; };
 		480989B32BB0C19300B49AE8 /* absd.defs in Sources */ = {isa = PBXBuildFile; fileRef = 480989B22BB0C0F800B49AE8 /* absd.defs */; settings = {ATTRIBUTES = (Client, ); }; };
-		48A46F162BBF425E000407BE /* ValidationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D860492BB0DD110092EF79 /* ValidationData.swift */; };
-		48A46F172BBF425E000407BE /* ApplicationMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D289122BB3743F00EA9DEC /* ApplicationMonitor.swift */; };
-		48A46F182BBF425E000407BE /* absd.defs in Sources */ = {isa = PBXBuildFile; fileRef = 480989B22BB0C0F800B49AE8 /* absd.defs */; settings = {ATTRIBUTES = (Client, ); }; };
-		48A46F192BBF425E000407BE /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D289142BB3745000EA9DEC /* LocationManager.swift */; };
-		48A46F1A2BBF425E000407BE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 480989A32BB0C01900B49AE8 /* ContentView.swift */; };
-		48A46F1B2BBF425E000407BE /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D289172BB3A5A700EA9DEC /* LogView.swift */; };
-		48A46F1C2BBF425E000407BE /* ValidationRelayApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 480989A12BB0C01900B49AE8 /* ValidationRelayApp.swift */; };
-		48A46F1D2BBF425E000407BE /* Relay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D8604E2BB1B8EB0092EF79 /* Relay.swift */; };
-		48A46F1F2BBF425E000407BE /* libMobileGestalt.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 48D289102BB3579000EA9DEC /* libMobileGestalt.tbd */; };
-		48A46F202BBF425E000407BE /* NWWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 48A46F132BBF425E000407BE /* NWWebSocket */; };
-		48A46F222BBF425E000407BE /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 480989A82BB0C01A00B49AE8 /* Preview Assets.xcassets */; };
-		48A46F232BBF425E000407BE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 480989A52BB0C01A00B49AE8 /* Assets.xcassets */; };
-		48A46F342BBF431D000407BE /* TestFlightServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 48A46F2D2BBF431D000407BE /* TestFlightServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		48A46F3B2BBF438D000407BE /* AppStoreDaemon.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 48A46F392BBF438D000407BE /* AppStoreDaemon.tbd */; };
-		48A46F3C2BBF438D000407BE /* FrontBoardServices.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 48A46F3A2BBF438D000407BE /* FrontBoardServices.tbd */; };
-		48A46F412BBF43D5000407BE /* TestFlightServiceExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A46F402BBF43D5000407BE /* TestFlightServiceExtension.swift */; };
 		48D289112BB3579000EA9DEC /* libMobileGestalt.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 48D289102BB3579000EA9DEC /* libMobileGestalt.tbd */; };
-		48D289132BB3743F00EA9DEC /* ApplicationMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D289122BB3743F00EA9DEC /* ApplicationMonitor.swift */; };
-		48D289152BB3745000EA9DEC /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D289142BB3745000EA9DEC /* LocationManager.swift */; };
 		48D289182BB3A5A700EA9DEC /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D289172BB3A5A700EA9DEC /* LogView.swift */; };
 		48D8604A2BB0DD110092EF79 /* ValidationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D860492BB0DD110092EF79 /* ValidationData.swift */; };
 		48D8604D2BB1B8CC0092EF79 /* NWWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 48D8604C2BB1B8CC0092EF79 /* NWWebSocket */; };
 		48D8604F2BB1B8EB0092EF79 /* Relay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D8604E2BB1B8EB0092EF79 /* Relay.swift */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		48A46F322BBF431D000407BE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 480989962BB0C01900B49AE8 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 48A46F2C2BBF431D000407BE;
-			remoteInfo = TestFlightServiceExtension;
-		};
-/* End PBXContainerItemProxy section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		48A46F382BBF431D000407BE /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				48A46F342BBF431D000407BE /* TestFlightServiceExtension.appex in Embed Foundation Extensions */,
-			);
-			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		4809899E2BB0C01900B49AE8 /* ValidationRelay.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ValidationRelay.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -70,18 +28,7 @@
 		480989AF2BB0C0AF00B49AE8 /* ValidationRelay-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ValidationRelay-Bridging-Header.h"; sourceTree = "<group>"; };
 		480989B22BB0C0F800B49AE8 /* absd.defs */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.mig; path = absd.defs; sourceTree = "<group>"; };
 		480989B42BB0D16400B49AE8 /* ValidationRelay.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ValidationRelay.entitlements; sourceTree = "<group>"; };
-		48A46F272BBF425E000407BE /* ValidationRelay TestFlight.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ValidationRelay TestFlight.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		48A46F2D2BBF431D000407BE /* TestFlightServiceExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TestFlightServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		48A46F312BBF431D000407BE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		48A46F392BBF438D000407BE /* AppStoreDaemon.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = AppStoreDaemon.tbd; path = TestFlightServiceExtension/AppStoreDaemon.tbd; sourceTree = "<group>"; };
-		48A46F3A2BBF438D000407BE /* FrontBoardServices.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = FrontBoardServices.tbd; path = TestFlightServiceExtension/FrontBoardServices.tbd; sourceTree = "<group>"; };
-		48A46F3D2BBF439B000407BE /* TestFlightServiceExtension-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TestFlightServiceExtension-Bridging-Header.h"; sourceTree = "<group>"; };
-		48A46F402BBF43D5000407BE /* TestFlightServiceExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestFlightServiceExtension.swift; sourceTree = "<group>"; };
-		48A46F422BBF4433000407BE /* build_testflight.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build_testflight.sh; sourceTree = "<group>"; };
-		48A46F432BBF44E8000407BE /* TestFlightServiceExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TestFlightServiceExtension.entitlements; sourceTree = "<group>"; };
 		48D289102BB3579000EA9DEC /* libMobileGestalt.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libMobileGestalt.tbd; path = usr/lib/libMobileGestalt.tbd; sourceTree = SDKROOT; };
-		48D289122BB3743F00EA9DEC /* ApplicationMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationMonitor.swift; sourceTree = "<group>"; };
-		48D289142BB3745000EA9DEC /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		48D289162BB374FA00EA9DEC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		48D289172BB3A5A700EA9DEC /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
 		48D860482BB0D7BF0092EF79 /* build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build.sh; sourceTree = "<group>"; };
@@ -99,24 +46,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		48A46F1E2BBF425E000407BE /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				48A46F1F2BBF425E000407BE /* libMobileGestalt.tbd in Frameworks */,
-				48A46F202BBF425E000407BE /* NWWebSocket in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		48A46F2A2BBF431D000407BE /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				48A46F3B2BBF438D000407BE /* AppStoreDaemon.tbd in Frameworks */,
-				48A46F3C2BBF438D000407BE /* FrontBoardServices.tbd in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -124,9 +53,7 @@
 			isa = PBXGroup;
 			children = (
 				48D860482BB0D7BF0092EF79 /* build.sh */,
-				48A46F422BBF4433000407BE /* build_testflight.sh */,
 				480989A02BB0C01900B49AE8 /* ValidationRelay */,
-				48A46F2E2BBF431D000407BE /* TestFlightServiceExtension */,
 				4809899F2BB0C01900B49AE8 /* Products */,
 				48D2890F2BB3579000EA9DEC /* Frameworks */,
 			);
@@ -136,8 +63,6 @@
 			isa = PBXGroup;
 			children = (
 				4809899E2BB0C01900B49AE8 /* ValidationRelay.app */,
-				48A46F272BBF425E000407BE /* ValidationRelay TestFlight.app */,
-				48A46F2D2BBF431D000407BE /* TestFlightServiceExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -155,10 +80,8 @@
 				480989AF2BB0C0AF00B49AE8 /* ValidationRelay-Bridging-Header.h */,
 				48D860492BB0DD110092EF79 /* ValidationData.swift */,
 				48D8604E2BB1B8EB0092EF79 /* Relay.swift */,
-				48D289122BB3743F00EA9DEC /* ApplicationMonitor.swift */,
-				48D289142BB3745000EA9DEC /* LocationManager.swift */,
 				48D289172BB3A5A700EA9DEC /* LogView.swift */,
-				);
+			);
 			path = ValidationRelay;
 			sourceTree = "<group>";
 		};
@@ -170,22 +93,9 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
-		48A46F2E2BBF431D000407BE /* TestFlightServiceExtension */ = {
-			isa = PBXGroup;
-			children = (
-				48A46F432BBF44E8000407BE /* TestFlightServiceExtension.entitlements */,
-				48A46F312BBF431D000407BE /* Info.plist */,
-				48A46F3D2BBF439B000407BE /* TestFlightServiceExtension-Bridging-Header.h */,
-				48A46F402BBF43D5000407BE /* TestFlightServiceExtension.swift */,
-			);
-			path = TestFlightServiceExtension;
-			sourceTree = "<group>";
-		};
 		48D2890F2BB3579000EA9DEC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				48A46F392BBF438D000407BE /* AppStoreDaemon.tbd */,
-				48A46F3A2BBF438D000407BE /* FrontBoardServices.tbd */,
 				48D289102BB3579000EA9DEC /* libMobileGestalt.tbd */,
 			);
 			name = Frameworks;
@@ -214,45 +124,6 @@
 			productReference = 4809899E2BB0C01900B49AE8 /* ValidationRelay.app */;
 			productType = "com.apple.product-type.application";
 		};
-		48A46F122BBF425E000407BE /* ValidationRelay TestFlight */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 48A46F242BBF425E000407BE /* Build configuration list for PBXNativeTarget "ValidationRelay TestFlight" */;
-			buildPhases = (
-				48A46F152BBF425E000407BE /* Sources */,
-				48A46F1E2BBF425E000407BE /* Frameworks */,
-				48A46F212BBF425E000407BE /* Resources */,
-				48A46F382BBF431D000407BE /* Embed Foundation Extensions */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				48A46F332BBF431D000407BE /* PBXTargetDependency */,
-			);
-			name = "ValidationRelay TestFlight";
-			packageProductDependencies = (
-				48A46F132BBF425E000407BE /* NWWebSocket */,
-			);
-			productName = ValidationRelay;
-			productReference = 48A46F272BBF425E000407BE /* ValidationRelay TestFlight.app */;
-			productType = "com.apple.product-type.application";
-		};
-		48A46F2C2BBF431D000407BE /* TestFlightServiceExtension */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 48A46F352BBF431D000407BE /* Build configuration list for PBXNativeTarget "TestFlightServiceExtension" */;
-			buildPhases = (
-				48A46F292BBF431D000407BE /* Sources */,
-				48A46F2A2BBF431D000407BE /* Frameworks */,
-				48A46F2B2BBF431D000407BE /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = TestFlightServiceExtension;
-			productName = TestFlightServiceExtension;
-			productReference = 48A46F2D2BBF431D000407BE /* TestFlightServiceExtension.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -264,10 +135,6 @@
 				LastUpgradeCheck = 1520;
 				TargetAttributes = {
 					4809899D2BB0C01900B49AE8 = {
-						CreatedOnToolsVersion = 15.2;
-						LastSwiftMigration = 1520;
-					};
-					48A46F2C2BBF431D000407BE = {
 						CreatedOnToolsVersion = 15.2;
 						LastSwiftMigration = 1520;
 					};
@@ -290,8 +157,6 @@
 			projectRoot = "";
 			targets = (
 				4809899D2BB0C01900B49AE8 /* ValidationRelay */,
-				48A46F122BBF425E000407BE /* ValidationRelay TestFlight */,
-				48A46F2C2BBF431D000407BE /* TestFlightServiceExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -306,22 +171,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		48A46F212BBF425E000407BE /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				48A46F222BBF425E000407BE /* Preview Assets.xcassets in Resources */,
-				48A46F232BBF425E000407BE /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		48A46F2B2BBF431D000407BE /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -330,9 +179,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				48D8604A2BB0DD110092EF79 /* ValidationData.swift in Sources */,
-				48D289132BB3743F00EA9DEC /* ApplicationMonitor.swift in Sources */,
 				480989B32BB0C19300B49AE8 /* absd.defs in Sources */,
-				48D289152BB3745000EA9DEC /* LocationManager.swift in Sources */,
 				480989A42BB0C01900B49AE8 /* ContentView.swift in Sources */,
 				48D289182BB3A5A700EA9DEC /* LogView.swift in Sources */,
 				480989A22BB0C01900B49AE8 /* ValidationRelayApp.swift in Sources */,
@@ -340,38 +187,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		48A46F152BBF425E000407BE /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				48A46F162BBF425E000407BE /* ValidationData.swift in Sources */,
-				48A46F172BBF425E000407BE /* ApplicationMonitor.swift in Sources */,
-				48A46F182BBF425E000407BE /* absd.defs in Sources */,
-				48A46F192BBF425E000407BE /* LocationManager.swift in Sources */,
-				48A46F1A2BBF425E000407BE /* ContentView.swift in Sources */,
-				48A46F1B2BBF425E000407BE /* LogView.swift in Sources */,
-				48A46F1C2BBF425E000407BE /* ValidationRelayApp.swift in Sources */,
-				48A46F1D2BBF425E000407BE /* Relay.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		48A46F292BBF431D000407BE /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				48A46F412BBF43D5000407BE /* TestFlightServiceExtension.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		48A46F332BBF431D000407BE /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 48A46F2C2BBF431D000407BE /* TestFlightServiceExtension */;
-			targetProxy = 48A46F322BBF431D000407BE /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		480989AA2BB0C01A00B49AE8 /* Debug */ = {
@@ -519,7 +335,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.jjtech.experiments.ValidationRelay;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -558,7 +374,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.jjtech.experiments.ValidationRelay;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -567,175 +383,6 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "ValidationRelay/ValidationRelay-Bridging-Header.h";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		48A46F252BBF425E000407BE /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = ValidationRelay/ValidationRelay.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"ValidationRelay/Preview Content\"";
-				ENABLE_PREVIEWS = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"TESTFLIGHT=1",
-				);
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = ValidationRelay/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Relay;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Keep ValidationRelay alive in the background";
-				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "Keep ValidationRelay alive in the background";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Keep ValidationRelay alive in the background";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.6;
-				OTHER_SWIFT_FLAGS = "\"-DTESTFLIGHT\"";
-				PRODUCT_BUNDLE_IDENTIFIER = com.apple.TestFlight;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "ValidationRelay/ValidationRelay-Bridging-Header.h";
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		48A46F262BBF425E000407BE /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = ValidationRelay/ValidationRelay.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"ValidationRelay/Preview Content\"";
-				ENABLE_PREVIEWS = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = "TESTFLIGHT=1";
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = ValidationRelay/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Relay;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Keep ValidationRelay alive in the background";
-				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "Keep ValidationRelay alive in the background";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Keep ValidationRelay alive in the background";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.6;
-				OTHER_SWIFT_FLAGS = "\"-DTESTFLIGHT\"";
-				PRODUCT_BUNDLE_IDENTIFIER = com.apple.TestFlight;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "ValidationRelay/ValidationRelay-Bridging-Header.h";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		48A46F362BBF431D000407BE /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = TestFlightServiceExtension/TestFlightServiceExtension.entitlements;
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = TestFlightServiceExtension/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TestFlightServiceExtension;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/TestFlightServiceExtension",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.apple.TestFlight.ServiceExtension;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "TestFlightServiceExtension/TestFlightServiceExtension-Bridging-Header.h";
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		48A46F372BBF431D000407BE /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = TestFlightServiceExtension/TestFlightServiceExtension.entitlements;
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = TestFlightServiceExtension/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TestFlightServiceExtension;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/TestFlightServiceExtension",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.apple.TestFlight.ServiceExtension;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "TestFlightServiceExtension/TestFlightServiceExtension-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -762,35 +409,9 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		48A46F242BBF425E000407BE /* Build configuration list for PBXNativeTarget "ValidationRelay TestFlight" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				48A46F252BBF425E000407BE /* Debug */,
-				48A46F262BBF425E000407BE /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		48A46F352BBF431D000407BE /* Build configuration list for PBXNativeTarget "TestFlightServiceExtension" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				48A46F362BBF431D000407BE /* Debug */,
-				48A46F372BBF431D000407BE /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		48A46F142BBF425E000407BE /* XCRemoteSwiftPackageReference "NWWebSocket" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/pusher/NWWebSocket.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.5.4;
-			};
-		};
 		48D8604B2BB1B8CC0092EF79 /* XCRemoteSwiftPackageReference "NWWebSocket" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pusher/NWWebSocket.git";
@@ -802,11 +423,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		48A46F132BBF425E000407BE /* NWWebSocket */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 48A46F142BBF425E000407BE /* XCRemoteSwiftPackageReference "NWWebSocket" */;
-			productName = NWWebSocket;
-		};
 		48D8604C2BB1B8CC0092EF79 /* NWWebSocket */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 48D8604B2BB1B8CC0092EF79 /* XCRemoteSwiftPackageReference "NWWebSocket" */;
