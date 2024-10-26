@@ -1,81 +1,250 @@
 //
-//  ValidationData.swift
+//  Relay.swift
 //  ValidationRelay
 //
-//  Created by James Gill on 3/24/24.
+//  Created by James Gill on 3/25/24.
 //
 
 import Foundation
+import Network
+import NWWebSocket
+import SwiftUI
 
-//struct ValidationSession {
-//    init() {
-//        // Setup session, make request
-//    }
-//    
-//    var expiry: Date {
-//        get {
-//            return Date()
-//        }
-//    }
-//    
-//    func sign(_ data: Data = Data()) -> Data {
-//        return Data()
-//    }
-//}
-
-/// Makes an HTTP request to http://static.ess.apple.com/identity/validation/cert-1.0.plist
-/// parses the plist and extracts the raw certificate data
-func getCertificate() -> Data {
-    let url = URL(string: "http://static.ess.apple.com/identity/validation/cert-1.0.plist")!
-    let data = try! Data(contentsOf: url)
-    let plist = try! PropertyListSerialization.propertyList(from: data, options: [], format: nil) as! [String: Any]
-    let certData = plist["cert"] as! Data
-    return certData
+func getIdentifiers() -> [String: String] {
+    var ustruct: utsname = utsname()
+    uname(&ustruct)
+    var ustruct2 = ustruct
+    let machine = withUnsafePointer(to: &ustruct2.machine) {
+        $0.withMemoryRebound(to: CChar.self, capacity: MemoryLayout.size(ofValue: ustruct.machine)) {
+            String(cString: $0)
+        }
+    }
+    
+    guard let build = buildNumber() else {
+        print("Failed to retrieve build number")
+        return [:]
+    }
+    
+    guard let uniqueDeviceID = MGCopyAnswer("UniqueDeviceID" as CFString)?.takeRetainedValue() as? String else {
+        print("Failed to retrieve UniqueDeviceID")
+        return [:]
+    }
+    
+    guard let serialNumber = MGCopyAnswer("SerialNumber" as CFString)?.takeRetainedValue() as? String else {
+        print("Failed to retrieve SerialNumber")
+        return [:]
+    }
+    
+    let identifiers = [
+        "hardware_version": machine,
+        "software_name": "iPhone OS",
+        "software_version": UIDevice.current.systemVersion,
+        "software_build_id": build,
+        "unique_device_id": uniqueDeviceID,
+        "serial_number": serialNumber
+    ]
+    return identifiers
 }
 
-/// Makes an HTTPS POST to https://identity.ess.apple.com/WebObjects/TDIdentityService.woa/wa/initializeValidation
-/// with a plist containing the session-info-request and returns the session-info
-func initializeValidation(_ request: Data) -> Data {
-    // Encode body as session-info-request key in plist
-    let requestB = try! PropertyListSerialization.data(fromPropertyList: ["session-info-request": request], format: .xml, options: 0)
+class RelayConnectionManager: ObservableObject {
+    @Published var registrationCode: String = "None"
+    @Published var connectionStatusMessage: String = ""
+    @Published var logItems = LogItems()
     
-    let url = URL(string: "https://identity.ess.apple.com/WebObjects/TDIdentityService.woa/wa/initializeValidation")!
-    var req = URLRequest(url: url)
-    req.httpMethod = "POST"
-    req.httpBody = requestB
-    req.setValue("application/x-apple-plist", forHTTPHeaderField: "Content-Type")
-    NSLog("Making POST request to \(url) with body \(requestB)")
-    let data = try! NSURLConnection.sendSynchronousRequest(req, returning: nil)
-    // Parse the response
-    NSLog("Got response \(data)")
-    let plist = try! PropertyListSerialization.propertyList(from: data, options: [], format: nil) as! [String: Any]
-    NSLog("Got plist \(plist)")
-    let sessionInfo = plist["session-info"] as! Data
-    NSLog("Got session info \(sessionInfo)")
-    return sessionInfo
+    // These must all be saved together
+    @AppStorage("savedRegistrationSecret") public var savedRegistrationSecret = ""
+    @AppStorage("savedRegistrationCode") public var savedRegistrationCode = ""
+    @AppStorage("savedRegistrationURL") public var savedRegistrationURL = ""
+    
+    var currentURL: URL? = nil
+    var connectionDelegate: RelayConnectionDelegate? = nil
+    
+    var reconnectWork: DispatchWorkItem? = nil
+    
+    var backoff: Int = 2
+    let maxBackoff: Int = 64 // Maximum backoff in seconds
+
+    func connect(_ url: URL) {
+        logItems.log("Connecting to \(url)")
+        connectionStatusMessage = "Connecting..."
+        currentURL = url
+        
+        backoff = 2 // Reset backoff
+        
+        reconnectWork?.cancel()
+        reconnectWork = nil
+
+        connectionDelegate = RelayConnectionDelegate(manager: self)
+    }
+
+    func disconnect() {
+        logItems.log("Disconnecting on request")
+        connectionStatusMessage = ""
+        currentURL = nil
+        
+        reconnectWork?.cancel()
+        reconnectWork = nil
+        
+        connectionDelegate?.disconnect()
+        connectionDelegate = nil
+    }
+
+    func triggerReconnect() {
+        logItems.log("Triggering reconnect")
+        connectionStatusMessage = "Reconnecting..."
+        connectionDelegate?.disconnect()
+        connectionDelegate = nil
+        print("Waiting for \(backoff) backoff seconds")
+        
+        reconnectWork?.cancel()
+        reconnectWork = nil
+        
+        let work = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            self.connectionDelegate = RelayConnectionDelegate(manager: self)
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(backoff), execute: work)
+        
+        reconnectWork = work
+        backoff = min(backoff * 2, maxBackoff)
+    }
 }
 
-func generateValidationData() -> Data {
-    let cert: Data = getCertificate()
-    var val_ctx: UInt64 = 0
-    var session_req: NSData? = NSData()
-    var ret = NACInit(cert, &val_ctx, &session_req)
-    NSLog("NACInit returned \(ret)")
-    assert(ret == 0)
-    let sessionInfo = initializeValidation(session_req! as Data)
-    NSLog("Got session info \(sessionInfo)")
+class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
+    var connection: WebSocketConnection
+    weak var manager: RelayConnectionManager?
+
+    init(manager: RelayConnectionManager) {
+        self.manager = manager
+        guard let currentURL = manager.currentURL else {
+            manager?.logItems.log("Current URL is nil", isError: true)
+            return
+        }
+        connection = NWWebSocket(url: currentURL, connectAutomatically: true)
+        connection.delegate = self
+        connection.ping(interval: 30)
+    }
     
-    ret = NACKeyEstablishment(val_ctx, sessionInfo)
-    NSLog("NACKeyEstablishment returned \(ret)")
-    assert(ret == 0)
+    func disconnect() {
+        connection.disconnect(closeCode: .protocolCode(.normalClosure))
+    }
     
-    var signature: NSData? = NSData()
-    ret = NACSign(val_ctx, Data(), &signature)
-    NSLog("NACSign returned \(ret)")
-    assert(ret == 0)
+    func webSocketDidConnect(connection: WebSocketConnection) {
+        DispatchQueue.main.async {
+            self.manager?.logItems.log("Websocket did connect")
+            self.manager?.connectionStatusMessage = "Connected"
+            var registerCommand: [String: Any] = ["command": "register", "data": ["": ""]]
+            
+            if self.manager?.currentURL?.absoluteString == self.manager?.savedRegistrationURL {
+                print("Using saved registration code")
+                self.manager?.logItems.log("Using saved registration code \(self.manager?.savedRegistrationCode ?? "")")
+                self.manager?.logItems.log("Using saved registration secret \(self.manager?.savedRegistrationSecret ?? "")")
+                registerCommand["data"] = ["code": self.manager?.savedRegistrationCode ?? "", "secret": self.manager?.savedRegistrationSecret ?? ""]
+            }
+            
+            do {
+                let data = try JSONSerialization.data(withJSONObject: registerCommand)
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print(jsonString)
+                    connection.send(string: jsonString)
+                }
+            } catch {
+                self.manager?.logItems.log("JSON Serialization failed: \(error)", isError: true)
+            }
+        }
+    }
     
-    NSLog("VALIDATION DATA \(signature!.base64EncodedString())")
+    func webSocketDidDisconnect(connection: WebSocketConnection, closeCode: NWProtocolWebSocket.CloseCode, reason: Data?) {
+        manager?.logItems.log("Websocket did disconnect", isError: true)
+        print("Disconnected")
+    }
     
-    return signature! as Data
+    func webSocketViabilityDidChange(connection: WebSocketConnection, isViable: Bool) {
+        // Respond to a WebSocket connection viability change event
+        print("WebSocket connection viability changed to \(isViable), ignoring")
+    }
+    
+    func webSocketDidAttemptBetterPathMigration(result: Result<WebSocketConnection, NWError>) {
+        // Respond to when a WebSocket connection migrates to a better network path
+        // (e.g. A device moves from a cellular connection to a Wi-Fi connection)
+        print("WebSocket connection attempted better path migration, ignoring")
+    }
+    
+    func webSocketDidReceiveError(connection: WebSocketConnection, error: NWError) {
+        print(error)
+        manager?.logItems.log("Websocket error: \(error)", isError: true)
+        self.manager?.triggerReconnect()
+    }
+    
+    func webSocketDidReceivePong(connection: WebSocketConnection) {
+        // Respond to a WebSocket connection receiving a Pong from the peer
+        //print("pong")
+    }
+    
+    func webSocketDidReceiveMessage(connection: WebSocketConnection, string: String) {
+        DispatchQueue.main.async {
+            print("Got string msg")
+            // Parse as JSON
+            let json = try! JSONSerialization.jsonObject(with: string.data(using: .utf8)!, options: [])
+            print(json)
+            
+            // Save registration code
+            if let jsonDict = json as? [String: Any] {
+                if let data = jsonDict["data"] as? [String: Any] {
+                    if let code = data["code"] as? String {
+                        self.manager?.registrationCode = code
+                        if self.manager?.savedRegistrationCode != code {
+                            self.manager?.logItems.log("New registration code \(code)")
+                            self.manager?.logItems.log("secret \(data["secret"] as? String ?? "")")
+                        }
+                        self.manager?.savedRegistrationCode = code
+                        self.manager?.savedRegistrationSecret = data["secret"] as? String ?? ""
+                        self.manager?.savedRegistrationURL = self.manager?.currentURL?.absoluteString ?? ""
+                    }
+                }
+                if let command = jsonDict["command"] as? String {
+                    if command == "get-version-info" {
+                        let versionInfo = ["command": "response", "data": ["versions": getIdentifiers()], "id": jsonDict["id"]!] as [String : Any]
+                        print("Sending version info: \(versionInfo)")
+                        self.manager?.logItems.log("Sending version info: \(versionInfo)")
+                        let data = try! JSONSerialization.data(withJSONObject: versionInfo)
+                        connection.send(string: String(data: data, encoding: .utf8)!)
+                    }
+                    if command == "get-validation-data" {
+                        print("Sending validation data")
+                        if let validationData = generateValidationData() {
+                            let v = validationData.base64EncodedString()
+                            print("Validation data: \(v)")
+                            self.manager?.logItems.log("Generated validation data: \(v)")
+                            let validationDataDict: [String: Any] = [
+                                "command": "response",
+                                "data": ["data": v],
+                                "id": jsonDict["id"] ?? ""
+                            ]
+                            do {
+                                let data = try JSONSerialization.data(withJSONObject: validationDataDict)
+                                if let jsonString = String(data: data, encoding: .utf8) {
+                                    connection.send(string: jsonString)
+                                }
+                            } catch {
+                                self.manager?.logItems.log("JSON Serialization failed: \(error)", isError: true)
+                            }
+                        } else {
+                            self.manager?.logItems.log("Failed to generate validation data", isError: true)
+                        }
+                    }
+                }
+            }
+            // Respond to a WebSocket connection receiving a `String` message
+        }
+    }
+    
+    func webSocketDidReceiveMessage(connection: WebSocketConnection, data: Data) {
+        // Respond to a WebSocket connection receiving a binary `Data` message
+        //  let json = try! JSONSerialization.jsonObject(with: data, options: [])
+        print("got data msg")
+        print(data)
+    }
 }
 
