@@ -112,22 +112,22 @@ class RelayConnectionManager: ObservableObject {
 }
 
 class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
-    var connection: WebSocketConnection
+    var connection: WebSocketConnection?
     weak var manager: RelayConnectionManager?
 
     init(manager: RelayConnectionManager) {
         self.manager = manager
         guard let currentURL = manager.currentURL else {
-            manager?.logItems.log("Current URL is nil", isError: true)
+            manager.logItems.log("Current URL is nil", isError: true)
             return
         }
         connection = NWWebSocket(url: currentURL, connectAutomatically: true)
-        connection.delegate = self
-        connection.ping(interval: 30)
+        connection?.delegate = self
+        connection?.ping(interval: 30)
     }
     
     func disconnect() {
-        connection.disconnect(closeCode: .protocolCode(.normalClosure))
+        connection?.disconnect(closeCode: .protocolCode(.normalClosure))
     }
     
     func webSocketDidConnect(connection: WebSocketConnection) {
@@ -213,25 +213,22 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
                     }
                     if command == "get-validation-data" {
                         print("Sending validation data")
-                        if let validationData = generateValidationData() {
-                            let v = validationData.base64EncodedString()
-                            print("Validation data: \(v)")
-                            self.manager?.logItems.log("Generated validation data: \(v)")
-                            let validationDataDict: [String: Any] = [
-                                "command": "response",
-                                "data": ["data": v],
-                                "id": jsonDict["id"] ?? ""
-                            ]
-                            do {
-                                let data = try JSONSerialization.data(withJSONObject: validationDataDict)
-                                if let jsonString = String(data: data, encoding: .utf8) {
-                                    connection.send(string: jsonString)
-                                }
-                            } catch {
-                                self.manager?.logItems.log("JSON Serialization failed: \(error)", isError: true)
+                        let validationData = generateValidationData()
+                        let v = validationData.base64EncodedString()
+                        print("Validation data: \(v)")
+                        self.manager?.logItems.log("Generated validation data: \(v)")
+                        let validationDataDict: [String: Any] = [
+                            "command": "response",
+                            "data": ["data": v],
+                            "id": jsonDict["id"] ?? ""
+                        ]
+                        do {
+                            let data = try JSONSerialization.data(withJSONObject: validationDataDict)
+                            if let jsonString = String(data: data, encoding: .utf8) {
+                                connection.send(string: jsonString)
                             }
-                        } else {
-                            self.manager?.logItems.log("Failed to generate validation data", isError: true)
+                        } catch {
+                            self.manager?.logItems.log("JSON Serialization failed: \(error)", isError: true)
                         }
                     }
                 }
