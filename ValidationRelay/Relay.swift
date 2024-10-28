@@ -49,6 +49,7 @@ class RelayConnectionManager: ObservableObject {
     var reconnectWork: DispatchWorkItem? = nil
     
     var backoff: Int = 2
+    let maxBackoff: Int = 64
 
     func connect(_ url: URL) {
         logItems.log("Connecting to \(url)")
@@ -93,7 +94,7 @@ class RelayConnectionManager: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + DispatchTimeInterval.seconds(backoff), execute: work)
         
         reconnectWork = work
-        backoff *= 2
+        backoff = min(backoff * 2, maxBackoff)
     }
 }
 
