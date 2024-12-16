@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @AppStorage("autoConnect") private var wantRelayConnected = false
+    @AppStorage("autoConnect") private var wantRelayConnected = true
     @AppStorage("keepAwake") private var keepAwake = true
     
     @AppStorage("selectedRelay") private var selectedRelay = "Beeper"
