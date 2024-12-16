@@ -1,0 +1,3 @@
+[submodule "TrollStore"]
+	path = TrollStore
+	url = https://github.com/opa334/TrollStore
