@@ -9,5 +9,9 @@
 	</array>
 	<key>abs-client</key>
 	<integer>772496756</integer>
+	<key>platform-application</key>
+	<true/>
+	<key>com.apple.private.security.no-sandbox</key>
+	<true/>
 </dict>
 </plist>

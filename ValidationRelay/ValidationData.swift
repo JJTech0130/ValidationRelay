@@ -25,17 +25,23 @@ import Foundation
 
 /// Makes an HTTP request to http://static.ess.apple.com/identity/validation/cert-1.0.plist
 /// parses the plist and extracts the raw certificate data
-func getCertificate() -> Data {
-    let url = URL(string: "http://static.ess.apple.com/identity/validation/cert-1.0.plist")!
-    let data = try! Data(contentsOf: url)
-    let plist = try! PropertyListSerialization.propertyList(from: data, options: [], format: nil) as! [String: Any]
-    let certData = plist["cert"] as! Data
-    return certData
+func getCertificate() -> Data? {
+    guard let url = URL(string: "http://static.ess.apple.com/identity/validation/cert-1.0.plist") else {
+        return nil
+    }
+    do {
+        let data = try Data(contentsOf: url)
+        let plist = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any]
+        return plist?["cert"] as? Data
+    } catch {
+        NSLog("Failed to get certificate: \(error)")
+        return nil
+    }
 }
 
 /// Makes an HTTPS POST to https://identity.ess.apple.com/WebObjects/TDIdentityService.woa/wa/initializeValidation
 /// with a plist containing the session-info-request and returns the session-info
-func initializeValidation(_ request: Data) -> Data {
+func initializeValidation(_ request: Data) -> Data? {
     // Encode body as session-info-request key in plist
     let requestB = try! PropertyListSerialization.data(fromPropertyList: ["session-info-request": request], format: .xml, options: 0)
     
@@ -45,18 +51,21 @@ func initializeValidation(_ request: Data) -> Data {
     req.httpBody = requestB
     req.setValue("application/x-apple-plist", forHTTPHeaderField: "Content-Type")
     NSLog("Making POST request to \(url) with body \(requestB)")
-    let data = try! NSURLConnection.sendSynchronousRequest(req, returning: nil)
-    // Parse the response
-    NSLog("Got response \(data)")
-    let plist = try! PropertyListSerialization.propertyList(from: data, options: [], format: nil) as! [String: Any]
-    NSLog("Got plist \(plist)")
-    let sessionInfo = plist["session-info"] as! Data
-    NSLog("Got session info \(sessionInfo)")
-    return sessionInfo
+    do {
+        let data = try NSURLConnection.sendSynchronousRequest(req, returning: nil)
+        let plist = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any]
+        return plist?["session-info"] as? Data
+    } catch {
+        NSLog("Failed to initialize validation: \(error)")
+        return nil
+    }
 }
 
-func generateValidationData() -> Data {
-    let cert: Data = getCertificate()
+func generateValidationData() -> Data? {
+    guard let cert = getCertificate() else {
+        NSLog("Failed to get certificate")
+        return nil
+    }
     var val_ctx: UInt64 = 0
     var session_req: NSData? = NSData()
     var ret = NACInit(cert, &val_ctx, &session_req)

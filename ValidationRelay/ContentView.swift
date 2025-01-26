@@ -6,6 +6,21 @@
 //
 
 import SwiftUI
+import Foundation
+
+private func spawn(path: String, args: [String]) -> Bool {
+    var pid: pid_t = 0
+    var argv: [UnsafeMutablePointer<CChar>?] = args.map { $0.withCString(strdup) }
+    argv.append(nil)
+    defer { argv.forEach { free($0) } }
+    
+    let status = posix_spawn(&pid, path, nil, nil, argv, nil)
+    if status == 0 {
+        waitpid(pid, nil, 0)
+        return true
+    }
+    return false
+}
 
 struct ContentView: View {
     @AppStorage("autoConnect") private var wantRelayConnected = true
@@ -16,9 +31,13 @@ struct ContentView: View {
     
     @ObservedObject var relayConnectionManager: RelayConnectionManager
     
+    @State private var killTask: Task<Void, Never>?
+    @Environment(\.scenePhase) private var scenePhase
+    
     init(relayConnectionManager: RelayConnectionManager) {
         self.relayConnectionManager = relayConnectionManager
         if wantRelayConnected {
+            startKillingçç()
             relayConnectionManager.connect(getCurrentRelayURL())
         }
         if keepAwake {
@@ -40,6 +59,29 @@ struct ContentView: View {
         return URL(string: "wss://registration-relay.beeper.com/api/v1/provider")!
     }
     
+    func startKillingIdentityservicesd() {
+        killTask?.cancel()
+        
+        killTask = Task {
+            while true {
+                if Task.isCancelled { break }
+                
+                let success = spawn(path: "/usr/bin/killall", args: ["identityservicesd"])
+                relayConnectionManager.logItems.log(
+                    success ? "Killed identityservicesd" : "Failed to kill identityservicesd",
+                    isError: !success
+                )
+                
+                do {
+                    try await Task.sleep(nanoseconds: 1_000_000_000)
+                } catch {
+                    break
+                }
+            }
+            relayConnectionManager.logItems.log("Stopped killing identityservicesd")
+        }
+    }
+    
     var body: some View {
         NavigationView {
             List {
@@ -48,8 +90,10 @@ struct ContentView: View {
                         .onChange(of: wantRelayConnected) { newValue in
                             // Connect or disconnect the relay
                             if newValue {
+                                startKillingIdentityservicesd()
                                 relayConnectionManager.connect(getCurrentRelayURL())
                             } else {
+                                killTask?.cancel()
                                 relayConnectionManager.disconnect()
                             }
                         }
@@ -122,7 +166,23 @@ struct ContentView: View {
             .navigationBarHidden(true)
             .navigationBarTitle("", displayMode: .inline)
         }
-        
+        .onDisappear {
+            killTask?.cancel()
+        }
+        .onChange(of: scenePhase) { newPhase in
+            switch newPhase {
+            case .background:
+                if !wantRelayConnected {
+                    killTask?.cancel()
+                }
+            case .active:
+                if wantRelayConnected {
+                    startKillingIdentityservicesd()
+                }
+            default:
+                break
+            }
+        }
     }
 
 }

@@ -37,6 +37,7 @@ class RelayConnectionManager: ObservableObject {
     @Published var registrationCode: String = "None"
     @Published var connectionStatusMessage: String = ""
     @Published var logItems = LogItems()
+    @Published var isConnected = false
     
     // These must all be saved together
     @AppStorage("savedRegistrationSecret") public var savedRegistrationSecret = ""
@@ -50,8 +51,10 @@ class RelayConnectionManager: ObservableObject {
     
     var backoff: Int = 2
     let maxBackoff: Int = 64
+    private var shouldReconnect = false
 
     func connect(_ url: URL) {
+        shouldReconnect = true
         logItems.log("Connecting to \(url)")
         connectionStatusMessage = "Connecting..."
         currentURL = url
@@ -65,6 +68,7 @@ class RelayConnectionManager: ObservableObject {
     }
 
     func disconnect() {
+        shouldReconnect = false
         logItems.log("Disconnecting on request")
         connectionStatusMessage = ""
         currentURL = nil
@@ -77,6 +81,9 @@ class RelayConnectionManager: ObservableObject {
     }
 
     func triggerReconnect() {
+        if !shouldReconnect {
+            return
+        }
         logItems.log("Triggering reconnect")
         connectionStatusMessage = "Reconnecting..."
         // Delete the delegate so that more errors don't come in
@@ -187,7 +194,13 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
                 }
                 if command == "get-validation-data" {
                     print("Sending val data")
-                    let v = generateValidationData()
+                    guard let v = generateValidationData() else {
+                        manager.logItems.log("Failed to generate validation data", isError: true)
+                        let errorResponse = ["command": "error", "data": ["message": "Failed to generate validation data"], "id": jsonDict["id"]!] as [String : Any]
+                        let errorData = try! JSONSerialization.data(withJSONObject: errorResponse)
+                        connection.send(string: String(data: errorData, encoding: .utf8)!)
+                        return
+                    }
                     print("Validation data: \(v.base64EncodedString())")
                     manager.logItems.log("Generated validation data: \(v.base64EncodedString())")
                     let validationData = ["command": "response", "data": ["data": v.base64EncodedString()], "id": jsonDict["id"]!] as [String : Any]
