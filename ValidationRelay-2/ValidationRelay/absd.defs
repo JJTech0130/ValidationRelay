@@ -1,0 +1,33 @@
+subsystem absd 1200;
+
+//#include <mach/mach_types.defs>
+//#include <mach/std_types.defs>
+
+userprefix raw;
+
+type mach_port_t = MACH_MSG_TYPE_COPY_SEND;
+type uint32_t = MACH_MSG_TYPE_INTEGER_32;
+type uint64_t = MACH_MSG_TYPE_INTEGER_64;
+type pointer_t = ^array[] of MACH_MSG_TYPE_BYTE
+    ctype: vm_offset_t;
+
+// Takes bytes of cert as argument and returns session request bytes
+routine NACInit(
+        server : mach_port_t;
+        in magic : uint32_t;
+        in cert : pointer_t;
+        out context : uint64_t;
+        out session_request : pointer_t);
+
+routine NACKeyEstablishment(
+        server : mach_port_t;
+        in magic : uint32_t;
+        in context : uint64_t;
+        in session_response : pointer_t);
+
+routine NACSign(
+        server : mach_port_t;
+        in magic : uint32_t;
+        in context : uint64_t;
+        in data : pointer_t;
+        out signature : pointer_t);
