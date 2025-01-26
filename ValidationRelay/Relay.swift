@@ -20,28 +20,15 @@ func getIdentifiers() -> [String: String] {
         }
     }
     
-    guard let build = buildNumber() else {
-        print("Failed to retrieve build number")
-        return [:]
-    }
-    
-    guard let uniqueDeviceID = MGCopyAnswer("UniqueDeviceID" as CFString)?.takeRetainedValue() as? String else {
-        print("Failed to retrieve UniqueDeviceID")
-        return [:]
-    }
-    
-    guard let serialNumber = MGCopyAnswer("SerialNumber" as CFString)?.takeRetainedValue() as? String else {
-        print("Failed to retrieve SerialNumber")
-        return [:]
-    }
     
     let identifiers = [
         "hardware_version": machine,
         "software_name": "iPhone OS",
         "software_version": UIDevice.current.systemVersion,
-        "software_build_id": build,
-        "unique_device_id": uniqueDeviceID,
-        "serial_number": serialNumber
+        "software_build_id": buildNumber()!,
+        "unique_device_id": MGCopyAnswer("UniqueDeviceID" as CFString)!.takeRetainedValue() as! String,
+        "serial_number": MGCopyAnswer("SerialNumber" as CFString)!.takeRetainedValue() as! String
+        
     ]
     return identifiers
 }
@@ -50,6 +37,7 @@ class RelayConnectionManager: ObservableObject {
     @Published var registrationCode: String = "None"
     @Published var connectionStatusMessage: String = ""
     @Published var logItems = LogItems()
+    @Published var isConnected = false
     
     // These must all be saved together
     @AppStorage("savedRegistrationSecret") public var savedRegistrationSecret = ""
@@ -62,9 +50,11 @@ class RelayConnectionManager: ObservableObject {
     var reconnectWork: DispatchWorkItem? = nil
     
     var backoff: Int = 2
-    let maxBackoff: Int = 64 // Maximum backoff in seconds
+    let maxBackoff: Int = 64
+    private var shouldReconnect = false
 
     func connect(_ url: URL) {
+        shouldReconnect = true
         logItems.log("Connecting to \(url)")
         connectionStatusMessage = "Connecting..."
         currentURL = url
@@ -78,6 +68,7 @@ class RelayConnectionManager: ObservableObject {
     }
 
     func disconnect() {
+        shouldReconnect = false
         logItems.log("Disconnecting on request")
         connectionStatusMessage = ""
         currentURL = nil
@@ -90,8 +81,12 @@ class RelayConnectionManager: ObservableObject {
     }
 
     func triggerReconnect() {
+        if !shouldReconnect {
+            return
+        }
         logItems.log("Triggering reconnect")
         connectionStatusMessage = "Reconnecting..."
+        // Delete the delegate so that more errors don't come in
         connectionDelegate?.disconnect()
         connectionDelegate = nil
         print("Waiting for \(backoff) backoff seconds")
@@ -99,12 +94,11 @@ class RelayConnectionManager: ObservableObject {
         reconnectWork?.cancel()
         reconnectWork = nil
         
-        let work = DispatchWorkItem { [weak self] in
-            guard let self = self else { return }
+        let work = DispatchWorkItem {
             self.connectionDelegate = RelayConnectionDelegate(manager: self)
         }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(backoff), execute: work)
+        // Wait a bit then try again
+        DispatchQueue.main.asyncAfter(deadline: .now() + DispatchTimeInterval.seconds(backoff), execute: work)
         
         reconnectWork = work
         backoff = min(backoff * 2, maxBackoff)
@@ -112,51 +106,39 @@ class RelayConnectionManager: ObservableObject {
 }
 
 class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
-    var connection: WebSocketConnection?
-    weak var manager: RelayConnectionManager?
+    var connection: WebSocketConnection
+    let manager: RelayConnectionManager
 
-    init(manager: RelayConnectionManager) {
+    init(
+        manager: RelayConnectionManager
+    ) {
         self.manager = manager
-        guard let currentURL = manager.currentURL else {
-            manager.logItems.log("Current URL is nil", isError: true)
-            return
-        }
-        connection = NWWebSocket(url: currentURL, connectAutomatically: true)
-        connection?.delegate = self
-        connection?.ping(interval: 30)
+        connection = NWWebSocket(url: manager.currentURL!, connectAutomatically: true)
+        connection.delegate = self
+        connection.ping(interval: 30)
     }
     
     func disconnect() {
-        connection?.disconnect(closeCode: .protocolCode(.normalClosure))
+        connection.disconnect(closeCode: .protocolCode(.normalClosure))
     }
     
     func webSocketDidConnect(connection: WebSocketConnection) {
-        DispatchQueue.main.async {
-            self.manager?.logItems.log("Websocket did connect")
-            self.manager?.connectionStatusMessage = "Connected"
-            var registerCommand: [String: Any] = ["command": "register", "data": ["": ""]]
-            
-            if self.manager?.currentURL?.absoluteString == self.manager?.savedRegistrationURL {
-                print("Using saved registration code")
-                self.manager?.logItems.log("Using saved registration code \(self.manager?.savedRegistrationCode ?? "")")
-                self.manager?.logItems.log("Using saved registration secret \(self.manager?.savedRegistrationSecret ?? "")")
-                registerCommand["data"] = ["code": self.manager?.savedRegistrationCode ?? "", "secret": self.manager?.savedRegistrationSecret ?? ""]
-            }
-            
-            do {
-                let data = try JSONSerialization.data(withJSONObject: registerCommand)
-                if let jsonString = String(data: data, encoding: .utf8) {
-                    print(jsonString)
-                    connection.send(string: jsonString)
-                }
-            } catch {
-                self.manager?.logItems.log("JSON Serialization failed: \(error)", isError: true)
-            }
+        manager.logItems.log("Websocket did connect")
+        manager.connectionStatusMessage = "Connected"
+        var registerCommand = ["command": "register", "data": ["": ""]] as [String : Any]
+        if manager.currentURL?.absoluteString == manager.savedRegistrationURL {
+            print("Using saved registration code")
+            manager.logItems.log("Using saved registration code \(manager.savedRegistrationCode)")
+            manager.logItems.log("Using saved registration secret \(manager.savedRegistrationSecret)")
+            registerCommand["data"] = ["code": manager.savedRegistrationCode, "secret": manager.savedRegistrationSecret]
         }
+        let data = try! JSONSerialization.data(withJSONObject: registerCommand)
+        print(String(data: data, encoding: .utf8)!)
+        connection.send(string: String(data: data, encoding: .utf8)!)
     }
     
     func webSocketDidDisconnect(connection: WebSocketConnection, closeCode: NWProtocolWebSocket.CloseCode, reason: Data?) {
-        manager?.logItems.log("Websocket did disconnect", isError: true)
+        manager.logItems.log("Websocket did disconnect", isError: true)
         print("Disconnected")
     }
     
@@ -173,8 +155,8 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
     
     func webSocketDidReceiveError(connection: WebSocketConnection, error: NWError) {
         print(error)
-        manager?.logItems.log("Websocket error: \(error)", isError: true)
-        self.manager?.triggerReconnect()
+        manager.logItems.log("Websocket error: \(error)", isError: true)
+        self.manager.triggerReconnect()
     }
     
     func webSocketDidReceivePong(connection: WebSocketConnection) {
@@ -183,58 +165,51 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
     }
     
     func webSocketDidReceiveMessage(connection: WebSocketConnection, string: String) {
-        DispatchQueue.main.async {
-            print("Got string msg")
-            // Parse as JSON
-            let json = try! JSONSerialization.jsonObject(with: string.data(using: .utf8)!, options: [])
-            print(json)
-            
-            // Save registration code
-            if let jsonDict = json as? [String: Any] {
-                if let data = jsonDict["data"] as? [String: Any] {
-                    if let code = data["code"] as? String {
-                        self.manager?.registrationCode = code
-                        if self.manager?.savedRegistrationCode != code {
-                            self.manager?.logItems.log("New registration code \(code)")
-                            self.manager?.logItems.log("secret \(data["secret"] as? String ?? "")")
-                        }
-                        self.manager?.savedRegistrationCode = code
-                        self.manager?.savedRegistrationSecret = data["secret"] as? String ?? ""
-                        self.manager?.savedRegistrationURL = self.manager?.currentURL?.absoluteString ?? ""
+        print("Got string msg")
+        // Parse as JSON
+        let json = try! JSONSerialization.jsonObject(with: string.data(using: .utf8)!, options: [])
+        print(json)
+        
+        // Save registration code
+        if let jsonDict = json as? [String: Any] {
+            if let data = jsonDict["data"] as? [String: Any] {
+                if let code = data["code"] as? String {
+                    manager.registrationCode = code
+                    if manager.savedRegistrationCode != code {
+                        manager.logItems.log("New registration code \(code)")
+                        manager.logItems.log("secret \(data["secret"] as? String ?? "")")
                     }
-                }
-                if let command = jsonDict["command"] as? String {
-                    if command == "get-version-info" {
-                        let versionInfo = ["command": "response", "data": ["versions": getIdentifiers()], "id": jsonDict["id"]!] as [String : Any]
-                        print("Sending version info: \(versionInfo)")
-                        self.manager?.logItems.log("Sending version info: \(versionInfo)")
-                        let data = try! JSONSerialization.data(withJSONObject: versionInfo)
-                        connection.send(string: String(data: data, encoding: .utf8)!)
-                    }
-                    if command == "get-validation-data" {
-                        print("Sending validation data")
-                        let validationData = generateValidationData()
-                        let v = validationData.base64EncodedString()
-                        print("Validation data: \(v)")
-                        self.manager?.logItems.log("Generated validation data: \(v)")
-                        let validationDataDict: [String: Any] = [
-                            "command": "response",
-                            "data": ["data": v],
-                            "id": jsonDict["id"] ?? ""
-                        ]
-                        do {
-                            let data = try JSONSerialization.data(withJSONObject: validationDataDict)
-                            if let jsonString = String(data: data, encoding: .utf8) {
-                                connection.send(string: jsonString)
-                            }
-                        } catch {
-                            self.manager?.logItems.log("JSON Serialization failed: \(error)", isError: true)
-                        }
-                    }
+                    manager.savedRegistrationCode = code
+                    manager.savedRegistrationSecret = data["secret"] as? String ?? ""
+                    manager.savedRegistrationURL = manager.currentURL?.absoluteString ?? ""
                 }
             }
-            // Respond to a WebSocket connection receiving a `String` message
+            if let command = jsonDict["command"] as? String {
+                if command == "get-version-info" {
+                    let versionInfo = ["command": "response", "data": ["versions": getIdentifiers()], "id": jsonDict["id"]!] as [String : Any]
+                    print("Sending version info: \(versionInfo)")
+                    manager.logItems.log("Sending version info: \(versionInfo)")
+                    let data = try! JSONSerialization.data(withJSONObject: versionInfo)
+                    connection.send(string: String(data: data, encoding: .utf8)!)
+                }
+                if command == "get-validation-data" {
+                    print("Sending val data")
+                    guard let v = generateValidationData() else {
+                        manager.logItems.log("Failed to generate validation data", isError: true)
+                        let errorResponse = ["command": "error", "data": ["message": "Failed to generate validation data"], "id": jsonDict["id"]!] as [String : Any]
+                        let errorData = try! JSONSerialization.data(withJSONObject: errorResponse)
+                        connection.send(string: String(data: errorData, encoding: .utf8)!)
+                        return
+                    }
+                    print("Validation data: \(v.base64EncodedString())")
+                    manager.logItems.log("Generated validation data: \(v.base64EncodedString())")
+                    let validationData = ["command": "response", "data": ["data": v.base64EncodedString()], "id": jsonDict["id"]!] as [String : Any]
+                    let data = try! JSONSerialization.data(withJSONObject: validationData)
+                    connection.send(string: String(data: data, encoding: .utf8)!)
+                }
+            }
         }
+        // Respond to a WebSocket connection receiving a `String` message
     }
     
     func webSocketDidReceiveMessage(connection: WebSocketConnection, data: Data) {
@@ -244,3 +219,4 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
         print(data)
     }
 }
+

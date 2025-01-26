@@ -16,10 +16,15 @@ struct LogItem: Identifiable, Hashable {
 
 class LogItems: ObservableObject {
     @Published var items: [LogItem] = []
+    let maxLogItems = 1000
     
     func log(_ message: String, isError: Bool = false) {
         let item = LogItem(message: message, isError: isError, date: Date())
         items.append(item)
+        
+        if items.count > maxLogItems {
+            items.removeFirst(items.count - maxLogItems)
+        }
     }
 }
 

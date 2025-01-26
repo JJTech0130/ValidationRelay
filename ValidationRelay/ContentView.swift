@@ -6,48 +6,97 @@
 //
 
 import SwiftUI
+import Foundation
+
+private func spawn(path: String, args: [String]) -> Bool {
+    var pid: pid_t = 0
+    var argv: [UnsafeMutablePointer<CChar>?] = args.map { $0.withCString(strdup) }
+    argv.append(nil)
+    defer { argv.forEach { free($0) } }
+    
+    let status = posix_spawn(&pid, path, nil, nil, argv, nil)
+    if status == 0 {
+        waitpid(pid, nil, 0)
+        return true
+    }
+    return false
+}
 
 struct ContentView: View {
-    @AppStorage("autoConnect") private var wantRelayConnected = false
+    @AppStorage("autoConnect") private var wantRelayConnected = true
     @AppStorage("keepAwake") private var keepAwake = true
+    
     @AppStorage("selectedRelay") private var selectedRelay = "Beeper"
     @AppStorage("customRelayURL") private var customRelayURL = ""
-
-    @StateObject private var relayConnectionManager = RelayConnectionManager()
-    @State private var customURLError: String?
-    @State private var isConnecting: Bool = false
-    @State private var connectionError: String?
-    @State private var isDimmingDisplay: Bool = false  // Separate loading state for dimming
-
-    init() {
-        // Initialization is handled by @StateObject
-    }
-
-    private func getCurrentRelayURL() -> URL? {
-        if selectedRelay == "Custom" {
-            guard !customRelayURL.isEmpty, let url = URL(string: customRelayURL) else {
-                customURLError = "Invalid URL"
-                return nil
-            }
-            customURLError = nil
-            return url
-        } else if selectedRelay == "pypush" {
-            return URL(string: "wss://registration-relay.jjtech.dev/api/v1/provider")
+    
+    @ObservedObject var relayConnectionManager: RelayConnectionManager
+    
+    @State private var killTask: Task<Void, Never>?
+    @Environment(\.scenePhase) private var scenePhase
+    
+    init(relayConnectionManager: RelayConnectionManager) {
+        self.relayConnectionManager = relayConnectionManager
+        if wantRelayConnected {
+            startKillingIdentityservicesd()
+            relayConnectionManager.connect(getCurrentRelayURL())
         }
-        // Default to Beeper relay
-        return URL(string: "wss://registration-relay.beeper.com/api/v1/provider")
+        if keepAwake {
+            UIApplication.shared.isIdleTimerDisabled = true
+        }
     }
-
+    
+    func getCurrentRelayURL() -> URL {
+        if selectedRelay == "Custom" {
+            if let url = URL(string: customRelayURL) {
+                return url
+            }
+        } else if selectedRelay == "pypush" {
+            return URL(string: "wss://registration-relay.jjtech.dev/api/v1/provider")!
+        }
+        
+        // Default to Beeper relay
+        selectedRelay = "Beeper"
+        return URL(string: "wss://registration-relay.beeper.com/api/v1/provider")!
+    }
+    
+    func startKillingIdentityservicesd() {
+        killTask?.cancel()
+        
+        killTask = Task {
+            while true {
+                if Task.isCancelled { break }
+                
+                let success = spawn(path: "/usr/bin/killall", args: ["identityservicesd"])
+                relayConnectionManager.logItems.log(
+                    success ? "Killed identityservicesd" : "Failed to kill identityservicesd",
+                    isError: !success
+                )
+                
+                do {
+                    try await Task.sleep(nanoseconds: 1_000_000_000)
+                } catch {
+                    break
+                }
+            }
+            relayConnectionManager.logItems.log("Stopped killing identityservicesd")
+        }
+    }
+    
     var body: some View {
         NavigationView {
             List {
                 Section {
                     Toggle("Relay", isOn: $wantRelayConnected)
-                        .disabled(isConnecting)
                         .onChange(of: wantRelayConnected) { newValue in
-                            handleConnectionChange(newValue)
+                            // Connect or disconnect the relay
+                            if newValue {
+                                startKillingIdentityservicesd()
+                                relayConnectionManager.connect(getCurrentRelayURL())
+                            } else {
+                                killTask?.cancel()
+                                relayConnectionManager.disconnect()
+                            }
                         }
-
                     HStack {
                         Text("Registration Code")
                         Spacer()
@@ -56,66 +105,56 @@ struct ContentView: View {
                             .multilineTextAlignment(.center)
                     }
                 } footer: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(relayConnectionManager.connectionStatusMessage)
-                        if let error = connectionError {
-                            Text(error)
-                                .foregroundColor(.red)
-                                .font(.caption)
-                        }
-                    }
+                    Text(relayConnectionManager.connectionStatusMessage)
                 }
-
                 Section {
+                    //Toggle("Run in Background", isOn: .constant(false))
+                    //    .disabled(true)
                     Picker("Relay", selection: $selectedRelay) {
                         Text("Beeper").tag("Beeper")
+                        //Text("pypush").tag("pypush")
                         Text("Custom").tag("Custom")
                     }
                     .pickerStyle(.segmented)
-                    .onChange(of: selectedRelay) { _ in
-                        handleRelayChange()
+                    .onChange(of: selectedRelay) { newValue in
+                        // Disconnect when the user is switching relay servers
+                        wantRelayConnected = false
                     }
-
-                    if selectedRelay == "Custom" {
+                    if (selectedRelay == "Custom") {
                         TextField("Custom Relay Server URL", text: $customRelayURL)
                             .textContentType(.URL)
                             .autocorrectionDisabled()
                             .autocapitalization(.none)
-                            .onChange(of: customRelayURL) { _ in validateCustomURL() }
-                        
-                        if let error = customURLError {
-                            Text(error)
-                                .foregroundColor(.red)
-                                .font(.caption)
-                        }
                     }
                 } header: {
                     Text("Connection settings")
                 } footer: {
                     Text("Beeper's relay server is recommended for most users")
                 }
-
+                
                 Section {
+                    // Navigation to Log page
                     NavigationLink(destination: LogView(logItems: relayConnectionManager.logItems)) {
                         Text("Log")
                     }
-
-                    Button(action: dimDisplay) {
-                        if isDimmingDisplay {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
-                        } else {
-                            Text("Dim Display")
-                        }
+                    Button("Dim Display") {
+                        UIScreen.main.brightness = 0.0
+                        UIScreen.main.wantsSoftwareDimming = true
                     }
-
                     Toggle("Keep Awake", isOn: $keepAwake)
                         .onChange(of: keepAwake) { newValue in
-                            UIApplication.shared.isIdleTimerDisabled = newValue
+                            if keepAwake {
+                                UIApplication.shared.isIdleTimerDisabled = true
+                            } else {
+                                UIApplication.shared.isIdleTimerDisabled = false
+                            }
                         }
-
                     Button("Reset Registration Code") {
-                        resetRegistration()
+                        relayConnectionManager.savedRegistrationURL = ""
+                        relayConnectionManager.savedRegistrationCode = ""
+                        relayConnectionManager.savedRegistrationSecret = ""
+                        relayConnectionManager.registrationCode = "None"
+                        wantRelayConnected = false
                     }
                     .foregroundColor(.red)
                     .frame(maxWidth: .infinity)
@@ -127,57 +166,27 @@ struct ContentView: View {
             .navigationBarHidden(true)
             .navigationBarTitle("", displayMode: .inline)
         }
-        .onAppear(perform: setupView)
-    }
-
-    private func handleConnectionChange(_ newValue: Bool) {
-        isConnecting = true
-        connectionError = nil
-        if newValue, let url = getCurrentRelayURL() {
-            relayConnectionManager.connect(url)
-            relayConnectionManager.connectionStatusMessage = "Attempting to connect..."
-        } else {
-            relayConnectionManager.disconnect()
+        .onDisappear {
+            killTask?.cancel()
         }
-        isConnecting = false
-    }
-
-    private func handleRelayChange() {
-        relayConnectionManager.disconnect()
-        wantRelayConnected = false
-    }
-
-    private func validateCustomURL() {
-        if URL(string: customRelayURL) == nil {
-            customURLError = "Invalid URL"
-        } else {
-            customURLError = nil
+        .onChange(of: scenePhase) { newPhase in
+            switch newPhase {
+            case .background:
+                if !wantRelayConnected {
+                    killTask?.cancel()
+                }
+            case .active:
+                if wantRelayConnected {
+                    startKillingIdentityservicesd()
+                }
+            default:
+                break
+            }
         }
     }
 
-    private func resetRegistration() {
-        relayConnectionManager.savedRegistrationURL = ""
-        relayConnectionManager.savedRegistrationCode = ""
-        relayConnectionManager.savedRegistrationSecret = ""
-        relayConnectionManager.registrationCode = "None"
-        wantRelayConnected = false
-    }
-
-    private func setupView() {
-        if wantRelayConnected, let url = getCurrentRelayURL() {
-            relayConnectionManager.connect(url)
-        }
-        UIApplication.shared.isIdleTimerDisabled = keepAwake
-    }
-    
-    private func dimDisplay() {
-        isDimmingDisplay = true
-        UIScreen.main.brightness = 0.0
-        UIScreen.main.wantsSoftwareDimming = true
-        isDimmingDisplay = false
-    }
 }
 
 #Preview {
-    ContentView()
+    ContentView(relayConnectionManager: RelayConnectionManager())
 }
