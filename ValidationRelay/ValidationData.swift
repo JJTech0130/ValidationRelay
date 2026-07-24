@@ -44,14 +44,11 @@ func initializeValidation(_ request: Data) -> Data {
     req.httpMethod = "POST"
     req.httpBody = requestB
     req.setValue("application/x-apple-plist", forHTTPHeaderField: "Content-Type")
-    NSLog("Making POST request to \(url) with body \(requestB)")
+    NSLog("Making validation initialization request")
     let data = try! NSURLConnection.sendSynchronousRequest(req, returning: nil)
     // Parse the response
-    NSLog("Got response \(data)")
     let plist = try! PropertyListSerialization.propertyList(from: data, options: [], format: nil) as! [String: Any]
-    NSLog("Got plist \(plist)")
     let sessionInfo = plist["session-info"] as! Data
-    NSLog("Got session info \(sessionInfo)")
     return sessionInfo
 }
 
@@ -63,7 +60,6 @@ func generateValidationData() -> Data {
     NSLog("NACInit returned \(ret)")
     assert(ret == 0)
     let sessionInfo = initializeValidation(session_req! as Data)
-    NSLog("Got session info \(sessionInfo)")
     
     ret = NACKeyEstablishment(val_ctx, sessionInfo)
     NSLog("NACKeyEstablishment returned \(ret)")
@@ -73,8 +69,6 @@ func generateValidationData() -> Data {
     ret = NACSign(val_ctx, Data(), &signature)
     NSLog("NACSign returned \(ret)")
     assert(ret == 0)
-    
-    NSLog("VALIDATION DATA \(signature!.base64EncodedString())")
     
     return signature! as Data
 }

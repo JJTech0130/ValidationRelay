@@ -47,47 +47,132 @@ class RelayConnectionManager: ObservableObject {
     var connectionDelegate: RelayConnectionDelegate? = nil
     
     var reconnectWork: DispatchWorkItem? = nil
+    var watchdogTimer: DispatchSourceTimer? = nil
+    var lastPongAt: Date? = nil
+    var shouldReconnect = false
     
     var backoff: Int = 2
     let maxBackoff: Int = 64
+    let watchdogInterval: TimeInterval = 30
+    let staleConnectionInterval: TimeInterval = 90
 
     func connect(_ url: URL) {
         logItems.log("Connecting to \(url)")
         connectionStatusMessage = "Connecting..."
         currentURL = url
+        shouldReconnect = true
         
         backoff = 2 // Reset backoff
         
         reconnectWork?.cancel()
         reconnectWork = nil
+        stopWatchdog()
 
+        let oldDelegate = connectionDelegate
+        connectionDelegate = nil
+        oldDelegate?.disconnect()
         connectionDelegate = RelayConnectionDelegate(manager: self)
     }
 
     func disconnect() {
         logItems.log("Disconnecting on request")
         connectionStatusMessage = ""
+        shouldReconnect = false
         currentURL = nil
         
         reconnectWork?.cancel()
         reconnectWork = nil
+        stopWatchdog()
         
-        connectionDelegate?.disconnect()
+        let oldDelegate = connectionDelegate
         connectionDelegate = nil
+        oldDelegate?.disconnect()
     }
 
-    func triggerReconnect() {
+    func didConnect(_ delegate: RelayConnectionDelegate) {
+        guard connectionDelegate === delegate else {
+            return
+        }
+
+        logItems.log("Websocket did connect")
+        connectionStatusMessage = "Connected"
+        lastPongAt = Date()
+        startWatchdog()
+    }
+
+    func didReceivePong(_ delegate: RelayConnectionDelegate) {
+        guard connectionDelegate === delegate else {
+            return
+        }
+
+        lastPongAt = Date()
+        backoff = 2
+    }
+
+    func didDisconnect(_ delegate: RelayConnectionDelegate) {
+        guard connectionDelegate === delegate else {
+            return
+        }
+
+        logItems.log("Websocket did disconnect", isError: true)
+        triggerReconnect()
+    }
+
+    func startWatchdog() {
+        stopWatchdog()
+        let timer = DispatchSource.makeTimerSource(queue: .main)
+        timer.schedule(deadline: .now() + watchdogInterval, repeating: watchdogInterval)
+        timer.setEventHandler { [weak self] in
+            guard let self,
+                  self.shouldReconnect,
+                  let lastPongAt = self.lastPongAt,
+                  Date().timeIntervalSince(lastPongAt) > self.staleConnectionInterval else {
+                return
+            }
+
+            self.logItems.log("Websocket heartbeat timed out", isError: true)
+            self.triggerReconnect()
+        }
+        watchdogTimer = timer
+        timer.resume()
+    }
+
+    func stopWatchdog() {
+        watchdogTimer?.cancel()
+        watchdogTimer = nil
+        lastPongAt = nil
+    }
+
+    func triggerReconnect(_ delegate: RelayConnectionDelegate? = nil) {
+        if let delegate, connectionDelegate !== delegate {
+            return
+        }
+        guard shouldReconnect, currentURL != nil else {
+            return
+        }
+        guard reconnectWork == nil else {
+            return
+        }
+
         logItems.log("Triggering reconnect")
         connectionStatusMessage = "Reconnecting..."
-        // Delete the delegate so that more errors don't come in
-        connectionDelegate?.disconnect()
+        stopWatchdog()
+
+        // Clear the active delegate before disconnecting it so its delayed
+        // callbacks cannot schedule a second reconnect.
+        let oldDelegate = connectionDelegate
         connectionDelegate = nil
+        oldDelegate?.disconnect()
         print("Waiting for \(backoff) backoff seconds")
         
-        reconnectWork?.cancel()
-        reconnectWork = nil
-        
-        let work = DispatchWorkItem {
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else {
+                return
+            }
+            self.reconnectWork = nil
+            guard self.shouldReconnect, self.currentURL != nil else {
+                return
+            }
             self.connectionDelegate = RelayConnectionDelegate(manager: self)
         }
         // Wait a bit then try again
@@ -116,28 +201,25 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
     }
     
     func webSocketDidConnect(connection: WebSocketConnection) {
-        manager.logItems.log("Websocket did connect")
-        manager.connectionStatusMessage = "Connected"
+        manager.didConnect(self)
         var registerCommand = ["command": "register", "data": ["": ""]] as [String : Any]
         if manager.currentURL?.absoluteString == manager.savedRegistrationURL {
-            print("Using saved registration code")
-            manager.logItems.log("Using saved registration code \(manager.savedRegistrationCode)")
-            manager.logItems.log("Using saved registration secret \(manager.savedRegistrationSecret)")
+            manager.logItems.log("Using saved registration credentials")
             registerCommand["data"] = ["code": manager.savedRegistrationCode, "secret": manager.savedRegistrationSecret]
         }
         let data = try! JSONSerialization.data(withJSONObject: registerCommand)
-        print(String(data: data, encoding: .utf8)!)
         connection.send(string: String(data: data, encoding: .utf8)!)
     }
     
     func webSocketDidDisconnect(connection: WebSocketConnection, closeCode: NWProtocolWebSocket.CloseCode, reason: Data?) {
-        manager.logItems.log("Websocket did disconnect", isError: true)
-        print("Disconnected")
+        manager.didDisconnect(self)
     }
     
     func webSocketViabilityDidChange(connection: WebSocketConnection, isViable: Bool) {
-        // Respond to a WebSocket connection viability change event
-        print("WebSocket connection viability changed to \(isViable), ignoring")
+        if !isViable {
+            manager.logItems.log("Websocket connection is no longer viable", isError: true)
+            manager.triggerReconnect(self)
+        }
     }
     
     func webSocketDidAttemptBetterPathMigration(result: Result<WebSocketConnection, NWError>) {
@@ -149,19 +231,20 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
     func webSocketDidReceiveError(connection: WebSocketConnection, error: NWError) {
         print(error)
         manager.logItems.log("Websocket error: \(error)", isError: true)
-        self.manager.triggerReconnect()
+        self.manager.triggerReconnect(self)
     }
     
     func webSocketDidReceivePong(connection: WebSocketConnection) {
-        // Respond to a WebSocket connection receiving a Pong from the peer
-        //print("pong")
+        manager.didReceivePong(self)
     }
     
     func webSocketDidReceiveMessage(connection: WebSocketConnection, string: String) {
-        print("Got string msg")
-        // Parse as JSON
-        let json = try! JSONSerialization.jsonObject(with: string.data(using: .utf8)!, options: [])
-        print(json)
+        guard let encodedMessage = string.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: encodedMessage, options: []) else {
+            manager.logItems.log("Received an invalid relay message", isError: true)
+            return
+        }
+        manager.didReceivePong(self)
         
         // Save registration code
         if let jsonDict = json as? [String: Any] {
@@ -169,8 +252,7 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
                 if let code = data["code"] as? String {
                     manager.registrationCode = code
                     if manager.savedRegistrationCode != code {
-                        manager.logItems.log("New registration code \(code)")
-                        manager.logItems.log("secret \(data["secret"] as? String ?? "")")
+                        manager.logItems.log("Received new registration credentials")
                     }
                     manager.savedRegistrationCode = code
                     manager.savedRegistrationSecret = data["secret"] as? String ?? ""
@@ -180,16 +262,13 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
             if let command = jsonDict["command"] as? String {
                 if command == "get-version-info" {
                     let versionInfo = ["command": "response", "data": ["versions": getIdentifiers()], "id": jsonDict["id"]!] as [String : Any]
-                    print("Sending version info: \(versionInfo)")
-                    manager.logItems.log("Sending version info: \(versionInfo)")
+                    manager.logItems.log("Sending device version information")
                     let data = try! JSONSerialization.data(withJSONObject: versionInfo)
                     connection.send(string: String(data: data, encoding: .utf8)!)
                 }
                 if command == "get-validation-data" {
-                    print("Sending val data")
                     let v = generateValidationData()
-                    print("Validation data: \(v.base64EncodedString())")
-                    manager.logItems.log("Generated validation data: \(v.base64EncodedString())")
+                    manager.logItems.log("Generated validation data")
                     let validationData = ["command": "response", "data": ["data": v.base64EncodedString()], "id": jsonDict["id"]!] as [String : Any]
                     let data = try! JSONSerialization.data(withJSONObject: validationData)
                     connection.send(string: String(data: data, encoding: .utf8)!)
@@ -200,10 +279,7 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
     }
     
     func webSocketDidReceiveMessage(connection: WebSocketConnection, data: Data) {
-        // Respond to a WebSocket connection receiving a binary `Data` message
-        //  let json = try! JSONSerialization.jsonObject(with: data, options: [])
-        print("got data msg")
-        print(data)
+        manager.logItems.log("Received an unexpected binary relay message", isError: true)
     }
 }
 
