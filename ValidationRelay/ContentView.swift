@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage("autoConnect") private var wantRelayConnected = true
     @AppStorage("keepAwake") private var keepAwake = true
     
@@ -126,6 +127,15 @@ struct ContentView: View {
                 if wantRelayConnected {
                     connectCurrentRelay()
                 }
+            }
+            .onChange(of: scenePhase) { newPhase in
+                guard newPhase == .active,
+                      wantRelayConnected,
+                      let url = getCurrentRelayURL() else {
+                    return
+                }
+                UIApplication.shared.isIdleTimerDisabled = keepAwake
+                relayConnectionManager.refreshOnForeground(url)
             }
         }
         

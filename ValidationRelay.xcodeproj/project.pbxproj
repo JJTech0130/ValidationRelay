@@ -417,7 +417,7 @@
 			repositoryURL = "https://github.com/pusher/NWWebSocket.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.5.4;
+				minimumVersion = 0.5.10;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

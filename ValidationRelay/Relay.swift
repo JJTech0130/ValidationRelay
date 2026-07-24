@@ -8,9 +8,17 @@
 import Foundation
 import Network
 import NWWebSocket
+import Security
 import SwiftUI
 
-func getIdentifiers() -> [String: String] {
+func copyMobileGestaltString(_ key: String) -> String? {
+    guard let answer = MGCopyAnswer(key as CFString) else {
+        return nil
+    }
+    return answer.takeRetainedValue() as? String
+}
+
+func getIdentifiers() -> [String: String]? {
     var ustruct: utsname = utsname()
     uname(&ustruct)
     var ustruct2 = ustruct
@@ -21,16 +29,80 @@ func getIdentifiers() -> [String: String] {
     }
     
     
+    guard let softwareBuildID = buildNumber(),
+          let uniqueDeviceID = copyMobileGestaltString("UniqueDeviceID"),
+          let serialNumber = copyMobileGestaltString("SerialNumber") else {
+        return nil
+    }
+
     let identifiers = [
         "hardware_version": machine,
         "software_name": "iPhone OS",
         "software_version": UIDevice.current.systemVersion,
-        "software_build_id": buildNumber()!,
-        "unique_device_id": MGCopyAnswer("UniqueDeviceID" as CFString)!.takeRetainedValue() as! String,
-        "serial_number": MGCopyAnswer("SerialNumber" as CFString)!.takeRetainedValue() as! String
+        "software_build_id": softwareBuildID,
+        "unique_device_id": uniqueDeviceID,
+        "serial_number": serialNumber
         
     ]
     return identifiers
+}
+
+enum RegistrationSecretStore {
+    private static let service = "app.openbubbles.ValidationRelay"
+    private static let account = "registration-secret"
+
+    static func read() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var item: CFTypeRef?
+        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
+              let data = item as? Data else {
+            return nil
+        }
+        return String(data: data, encoding: .utf8)
+    }
+
+    @discardableResult
+    static func write(_ value: String) -> Bool {
+        if value.isEmpty {
+            let query: [String: Any] = [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: service,
+                kSecAttrAccount as String: account
+            ]
+            let status = SecItemDelete(query as CFDictionary)
+            return status == errSecSuccess || status == errSecItemNotFound
+        }
+
+        guard let data = value.data(using: .utf8) else {
+            return false
+        }
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account
+        ]
+        let attributes: [String: Any] = [
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        ]
+        let updateStatus = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+        if updateStatus == errSecSuccess {
+            return true
+        }
+        guard updateStatus == errSecItemNotFound else {
+            return false
+        }
+
+        var newItem = query
+        newItem.merge(attributes) { _, new in new }
+        return SecItemAdd(newItem as CFDictionary, nil) == errSecSuccess
+    }
 }
 
 class RelayConnectionManager: ObservableObject {
@@ -39,28 +111,83 @@ class RelayConnectionManager: ObservableObject {
     @Published var logItems = LogItems()
     
     // These must all be saved together
-    @AppStorage("savedRegistrationSecret") public var savedRegistrationSecret = ""
     @AppStorage("savedRegistrationCode") public var savedRegistrationCode = ""
     @AppStorage("savedRegistrationURL") public var savedRegistrationURL = ""
+
+    public var savedRegistrationSecret: String {
+        get {
+            RegistrationSecretStore.read() ?? ""
+        }
+        set {
+            if !RegistrationSecretStore.write(newValue) {
+                logItems.log("Failed to update the registration secret", isError: true)
+            }
+        }
+    }
     
     var currentURL: URL? = nil
     var connectionDelegate: RelayConnectionDelegate? = nil
     
     var reconnectWork: DispatchWorkItem? = nil
+    var connectionTimeoutWork: DispatchWorkItem? = nil
     var watchdogTimer: DispatchSourceTimer? = nil
     var lastPongAt: Date? = nil
     var shouldReconnect = false
     
     var backoff: Int = 2
     let maxBackoff: Int = 64
+    let connectionTimeout: TimeInterval = 30
     let watchdogInterval: TimeInterval = 30
     let staleConnectionInterval: TimeInterval = 90
+
+    init() {
+        if let legacySecret = UserDefaults.standard.string(forKey: "savedRegistrationSecret"),
+           !legacySecret.isEmpty,
+           RegistrationSecretStore.read() == nil {
+            _ = RegistrationSecretStore.write(legacySecret)
+        }
+        UserDefaults.standard.removeObject(forKey: "savedRegistrationSecret")
+    }
 
     func connectIfNeeded(_ url: URL) {
         if shouldReconnect, currentURL == url, connectionDelegate != nil {
             return
         }
         connect(url)
+    }
+
+    func refreshOnForeground(_ url: URL) {
+        guard shouldReconnect, currentURL == url else {
+            connect(url)
+            return
+        }
+        if connectionStatusMessage != "Connected" ||
+            lastPongAt.map({ Date().timeIntervalSince($0) > staleConnectionInterval }) == true {
+            triggerReconnect()
+        }
+    }
+
+    private func beginConnection(_ url: URL) {
+        let delegate = RelayConnectionDelegate(manager: self, url: url)
+        connectionDelegate = delegate
+
+        connectionTimeoutWork?.cancel()
+        let work = DispatchWorkItem { [weak self, weak delegate] in
+            guard let self,
+                  let delegate,
+                  self.connectionDelegate === delegate,
+                  self.connectionStatusMessage != "Connected" else {
+                return
+            }
+            self.connectionTimeoutWork = nil
+            self.logItems.log("Websocket connection timed out", isError: true)
+            self.triggerReconnect(delegate)
+        }
+        connectionTimeoutWork = work
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + connectionTimeout,
+            execute: work
+        )
     }
 
     func connect(_ url: URL) {
@@ -74,12 +201,14 @@ class RelayConnectionManager: ObservableObject {
         
         reconnectWork?.cancel()
         reconnectWork = nil
+        connectionTimeoutWork?.cancel()
+        connectionTimeoutWork = nil
         stopWatchdog()
 
         let oldDelegate = connectionDelegate
         connectionDelegate = nil
         oldDelegate?.disconnect()
-        connectionDelegate = RelayConnectionDelegate(manager: self, url: url)
+        beginConnection(url)
     }
 
     func disconnect() {
@@ -90,6 +219,8 @@ class RelayConnectionManager: ObservableObject {
         
         reconnectWork?.cancel()
         reconnectWork = nil
+        connectionTimeoutWork?.cancel()
+        connectionTimeoutWork = nil
         stopWatchdog()
         
         let oldDelegate = connectionDelegate
@@ -104,6 +235,8 @@ class RelayConnectionManager: ObservableObject {
 
         logItems.log("Websocket did connect")
         connectionStatusMessage = "Connected"
+        connectionTimeoutWork?.cancel()
+        connectionTimeoutWork = nil
         lastPongAt = Date()
         startWatchdog()
     }
@@ -164,6 +297,8 @@ class RelayConnectionManager: ObservableObject {
 
         logItems.log("Triggering reconnect")
         connectionStatusMessage = "Reconnecting..."
+        connectionTimeoutWork?.cancel()
+        connectionTimeoutWork = nil
         stopWatchdog()
 
         // Clear the active delegate before disconnecting it so its delayed
@@ -181,7 +316,7 @@ class RelayConnectionManager: ObservableObject {
             guard self.shouldReconnect, let url = self.currentURL else {
                 return
             }
-            self.connectionDelegate = RelayConnectionDelegate(manager: self, url: url)
+            self.beginConnection(url)
         }
         // Wait a bit then try again
         DispatchQueue.main.asyncAfter(deadline: .now() + DispatchTimeInterval.seconds(backoff), execute: work)
@@ -270,15 +405,24 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
         
         // Save registration code
         if let jsonDict = json as? [String: Any] {
-            if let data = jsonDict["data"] as? [String: Any] {
-                if let code = data["code"] as? String {
+            if jsonDict["command"] as? String == "response",
+               let data = jsonDict["data"] as? [String: Any] {
+                if let code = data["code"] as? String,
+                   let secret = data["secret"] as? String,
+                   code.range(
+                    of: #"^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{4}(-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{4}){3}$"#,
+                    options: .regularExpression
+                   ) != nil,
+                   secret.range(of: #"^[A-Za-z0-9+/]{1,64}$"#, options: .regularExpression) != nil {
                     manager.registrationCode = code
                     if manager.savedRegistrationCode != code {
                         manager.logItems.log("Received new registration credentials")
                     }
                     manager.savedRegistrationCode = code
-                    manager.savedRegistrationSecret = data["secret"] as? String ?? ""
+                    manager.savedRegistrationSecret = secret
                     manager.savedRegistrationURL = manager.currentURL?.absoluteString ?? ""
+                } else if data["code"] != nil || data["secret"] != nil {
+                    manager.logItems.log("Rejected malformed registration credentials", isError: true)
                 }
             }
             if let command = jsonDict["command"] as? String,
@@ -288,15 +432,40 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
                     return
                 }
                 if command == "get-version-info" {
-                    let versionInfo = ["command": "response", "data": ["versions": getIdentifiers()], "id": requestID] as [String : Any]
+                    guard let identifiers = getIdentifiers() else {
+                        manager.logItems.log("Failed to read device identifiers", isError: true)
+                        return
+                    }
+                    let versionInfo = ["command": "response", "data": ["versions": identifiers], "id": requestID] as [String : Any]
                     manager.logItems.log("Sending device version information")
                     sendJSON(versionInfo, connection: connection)
                 }
                 if command == "get-validation-data" {
-                    let v = generateValidationData()
-                    manager.logItems.log("Generated validation data")
-                    let validationData = ["command": "response", "data": ["data": v.base64EncodedString()], "id": requestID] as [String : Any]
-                    sendJSON(validationData, connection: connection)
+                    manager.logItems.log("Generating validation data")
+                    generateValidationData { [weak self, weak manager] result in
+                        DispatchQueue.main.async {
+                            guard let self,
+                                  let manager,
+                                  manager.connectionDelegate === self else {
+                                return
+                            }
+                            switch result {
+                            case .success(let validationData):
+                                manager.logItems.log("Generated validation data")
+                                let response = [
+                                    "command": "response",
+                                    "data": ["data": validationData.base64EncodedString()],
+                                    "id": requestID
+                                ] as [String : Any]
+                                self.sendJSON(response, connection: connection)
+                            case .failure(let error):
+                                manager.logItems.log(
+                                    "Failed to generate validation data: \(error.localizedDescription)",
+                                    isError: true
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

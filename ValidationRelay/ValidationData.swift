@@ -7,69 +7,157 @@
 
 import Foundation
 
-//struct ValidationSession {
-//    init() {
-//        // Setup session, make request
-//    }
-//    
-//    var expiry: Date {
-//        get {
-//            return Date()
-//        }
-//    }
-//    
-//    func sign(_ data: Data = Data()) -> Data {
-//        return Data()
-//    }
-//}
+enum ValidationDataError: LocalizedError {
+    case invalidResponse
+    case httpStatus(Int)
+    case missingPlistValue(String)
+    case nativeFailure(String, Int)
+    case nativeOutputMissing(String)
+    case requestTimedOut
 
-/// Makes an HTTP request to http://static.ess.apple.com/identity/validation/cert-1.0.plist
-/// parses the plist and extracts the raw certificate data
-func getCertificate() -> Data {
-    let url = URL(string: "http://static.ess.apple.com/identity/validation/cert-1.0.plist")!
-    let data = try! Data(contentsOf: url)
-    let plist = try! PropertyListSerialization.propertyList(from: data, options: [], format: nil) as! [String: Any]
-    let certData = plist["cert"] as! Data
-    return certData
+    var errorDescription: String? {
+        switch self {
+        case .invalidResponse:
+            return "Apple returned an invalid response."
+        case .httpStatus(let status):
+            return "Apple returned HTTP status \(status)."
+        case .missingPlistValue(let key):
+            return "Apple's response did not contain \(key)."
+        case .nativeFailure(let operation, let status):
+            return "\(operation) failed with status \(status)."
+        case .nativeOutputMissing(let operation):
+            return "\(operation) did not return data."
+        case .requestTimedOut:
+            return "The validation request timed out."
+        }
+    }
 }
 
-/// Makes an HTTPS POST to https://identity.ess.apple.com/WebObjects/TDIdentityService.woa/wa/initializeValidation
-/// with a plist containing the session-info-request and returns the session-info
-func initializeValidation(_ request: Data) -> Data {
-    // Encode body as session-info-request key in plist
-    let requestB = try! PropertyListSerialization.data(fromPropertyList: ["session-info-request": request], format: .xml, options: 0)
-    
-    let url = URL(string: "https://identity.ess.apple.com/WebObjects/TDIdentityService.woa/wa/initializeValidation")!
-    var req = URLRequest(url: url)
-    req.httpMethod = "POST"
-    req.httpBody = requestB
-    req.setValue("application/x-apple-plist", forHTTPHeaderField: "Content-Type")
-    NSLog("Making validation initialization request")
-    let data = try! NSURLConnection.sendSynchronousRequest(req, returning: nil)
-    // Parse the response
-    let plist = try! PropertyListSerialization.propertyList(from: data, options: [], format: nil) as! [String: Any]
-    let sessionInfo = plist["session-info"] as! Data
+private let validationQueue = DispatchQueue(label: "app.openbubbles.validation-relay.validation")
+private let validationRequestTimeout: TimeInterval = 30
+
+private func fetchValidationData(_ request: URLRequest) throws -> Data {
+    let semaphore = DispatchSemaphore(value: 0)
+    var requestResult: Result<Data, Error>?
+
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.timeoutIntervalForRequest = validationRequestTimeout
+    configuration.timeoutIntervalForResource = validationRequestTimeout
+    let session = URLSession(configuration: configuration)
+    let task = session.dataTask(with: request) { data, response, error in
+        defer {
+            semaphore.signal()
+        }
+
+        if let error {
+            requestResult = .failure(error)
+            return
+        }
+        guard let httpResponse = response as? HTTPURLResponse,
+              let data else {
+            requestResult = .failure(ValidationDataError.invalidResponse)
+            return
+        }
+        guard (200...299).contains(httpResponse.statusCode) else {
+            requestResult = .failure(ValidationDataError.httpStatus(httpResponse.statusCode))
+            return
+        }
+        requestResult = .success(data)
+    }
+    task.resume()
+
+    guard semaphore.wait(timeout: .now() + validationRequestTimeout + 5) == .success else {
+        task.cancel()
+        session.invalidateAndCancel()
+        throw ValidationDataError.requestTimedOut
+    }
+    session.finishTasksAndInvalidate()
+    guard let requestResult else {
+        throw ValidationDataError.invalidResponse
+    }
+    return try requestResult.get()
+}
+
+private func getCertificate() throws -> Data {
+    guard let url = URL(string: "https://static.ess.apple.com/identity/validation/cert-1.0.plist") else {
+        throw ValidationDataError.invalidResponse
+    }
+    let data = try fetchValidationData(URLRequest(url: url))
+    guard let plist = try PropertyListSerialization.propertyList(
+        from: data,
+        options: [],
+        format: nil
+    ) as? [String: Any],
+          let certificate = plist["cert"] as? Data else {
+        throw ValidationDataError.missingPlistValue("cert")
+    }
+    return certificate
+}
+
+private func initializeValidation(_ request: Data) throws -> Data {
+    let requestBody = try PropertyListSerialization.data(
+        fromPropertyList: ["session-info-request": request],
+        format: .xml,
+        options: 0
+    )
+
+    guard let url = URL(string: "https://identity.ess.apple.com/WebObjects/TDIdentityService.woa/wa/initializeValidation") else {
+        throw ValidationDataError.invalidResponse
+    }
+    var urlRequest = URLRequest(url: url)
+    urlRequest.httpMethod = "POST"
+    urlRequest.httpBody = requestBody
+    urlRequest.setValue("application/x-apple-plist", forHTTPHeaderField: "Content-Type")
+
+    let data = try fetchValidationData(urlRequest)
+    guard let plist = try PropertyListSerialization.propertyList(
+        from: data,
+        options: [],
+        format: nil
+    ) as? [String: Any],
+          let sessionInfo = plist["session-info"] as? Data else {
+        throw ValidationDataError.missingPlistValue("session-info")
+    }
     return sessionInfo
 }
 
-func generateValidationData() -> Data {
-    let cert: Data = getCertificate()
-    var val_ctx: UInt64 = 0
-    var session_req: NSData? = NSData()
-    var ret = NACInit(cert, &val_ctx, &session_req)
-    NSLog("NACInit returned \(ret)")
-    assert(ret == 0)
-    let sessionInfo = initializeValidation(session_req! as Data)
-    
-    ret = NACKeyEstablishment(val_ctx, sessionInfo)
-    NSLog("NACKeyEstablishment returned \(ret)")
-    assert(ret == 0)
-    
-    var signature: NSData? = NSData()
-    ret = NACSign(val_ctx, Data(), &signature)
-    NSLog("NACSign returned \(ret)")
-    assert(ret == 0)
-    
-    return signature! as Data
+private func generateValidationData() throws -> Data {
+    let certificate = try getCertificate()
+    var validationContext: UInt64 = 0
+    var sessionRequest: NSData?
+    var status = NACInit(certificate, &validationContext, &sessionRequest)
+    guard status == 0 else {
+        throw ValidationDataError.nativeFailure("NACInit", Int(status))
+    }
+    guard let sessionRequest else {
+        throw ValidationDataError.nativeOutputMissing("NACInit")
+    }
+
+    let sessionInfo = try initializeValidation(sessionRequest as Data)
+    status = NACKeyEstablishment(validationContext, sessionInfo)
+    guard status == 0 else {
+        throw ValidationDataError.nativeFailure("NACKeyEstablishment", Int(status))
+    }
+
+    var signature: NSData?
+    status = NACSign(validationContext, Data(), &signature)
+    guard status == 0 else {
+        throw ValidationDataError.nativeFailure("NACSign", Int(status))
+    }
+    guard let signature else {
+        throw ValidationDataError.nativeOutputMissing("NACSign")
+    }
+    return signature as Data
 }
 
+func generateValidationData(
+    completion: @escaping (Result<Data, Error>) -> Void
+) {
+    validationQueue.async {
+        do {
+            completion(.success(try generateValidationData()))
+        } catch {
+            completion(.failure(error))
+        }
+    }
+}
