@@ -56,6 +56,27 @@ An apparent WebSocket “connected” state is not sufficient evidence of a usab
 relay. The registration response, validation request, and downstream message
 acknowledgement must each succeed.
 
+## Field-validated configuration
+
+The following workflow has been exercised successfully on one concrete
+configuration:
+
+- macOS/Xcode compilation of the iOS target
+- Signing and installation on an iPhone 7 through TrollStore/ImmortalizerTS
+- Apple validation-data exchange
+- Carrier registration and physical-device relay behavior
+- Foreground/Keep Awake behavior, plus locked-phone and display-off endurance
+  behavior on a non-jailbroken TrollStore device, with ImmortalizerTS working
+  and the relay remaining operational
+- Device: iPhone 7 running iOS 15.7.9
+
+This is field validation of the checked configuration, not a universal
+compatibility guarantee for every iOS release, carrier, signing environment, or
+device model. Future release candidates should repeat the locked-phone,
+display-off, foreground, reconnect, and network-change endurance tests. iOS
+suspension and background execution remain OS- and device-dependent, even when
+this setup is working correctly.
+
 ## Known limitations
 
 - Windows-side tooling can capture iPhone Bluetooth traffic for diagnostics,
@@ -64,8 +85,9 @@ acknowledgement must each succeed.
   to certificate, network, account, or native `absd` errors.
 - Background execution and network path migration remain device/OS dependent;
   the app cannot guarantee an always-on WebSocket when iOS suspends it.
-- Xcode compilation and a long locked-device endurance test are still required
-  before calling a change release-ready.
+- Xcode compilation and a long locked-device endurance test were validated for
+  the iPhone 7/iOS 15.7.9 setup above, but remain required again for future
+  release candidates and other device/OS combinations.
 
 For Android-client routing and redacted receive diagnostics, see the
 corresponding `docs/DEVELOPMENT.md` and `docs/DIAGNOSTICS.md` files in the
