@@ -15,29 +15,33 @@ struct ContentView: View {
     @AppStorage("customRelayURL") private var customRelayURL = ""
     
     @ObservedObject var relayConnectionManager: RelayConnectionManager
-    
-    init(relayConnectionManager: RelayConnectionManager) {
-        self.relayConnectionManager = relayConnectionManager
-        if wantRelayConnected {
-            relayConnectionManager.connect(getCurrentRelayURL())
-        }
-        if keepAwake {
-            UIApplication.shared.isIdleTimerDisabled = true
-        }
-    }
-    
-    func getCurrentRelayURL() -> URL {
+
+    func getCurrentRelayURL() -> URL? {
         if selectedRelay == "Custom" {
-            if let url = URL(string: customRelayURL) {
-                return url
+            guard let components = URLComponents(string: customRelayURL.trimmingCharacters(in: .whitespacesAndNewlines)),
+                  components.scheme?.lowercased() == "wss",
+                  components.host?.isEmpty == false,
+                  components.user == nil,
+                  components.password == nil,
+                  components.percentEncodedQuery == nil,
+                  components.fragment == nil else {
+                return nil
             }
+            return components.url
         } else if selectedRelay == "pypush" {
             return URL(string: "wss://registration-relay.jjtech.dev/api/v1/provider")!
         }
         
         // Default to Beeper relay
-        selectedRelay = "Beeper"
         return URL(string: "wss://registration-relay.beeper.com/api/v1/provider")!
+    }
+
+    func connectCurrentRelay() {
+        guard let url = getCurrentRelayURL() else {
+            relayConnectionManager.connectionStatusMessage = "Custom relay must be a secure wss:// URL without embedded credentials or a query."
+            return
+        }
+        relayConnectionManager.connectIfNeeded(url)
     }
     
     var body: some View {
@@ -48,7 +52,7 @@ struct ContentView: View {
                         .onChange(of: wantRelayConnected) { newValue in
                             // Connect or disconnect the relay
                             if newValue {
-                                relayConnectionManager.connect(getCurrentRelayURL())
+                                connectCurrentRelay()
                             } else {
                                 relayConnectionManager.disconnect()
                             }
@@ -99,11 +103,7 @@ struct ContentView: View {
                     }
                     Toggle("Keep Awake", isOn: $keepAwake)
                         .onChange(of: keepAwake) { newValue in
-                            if keepAwake {
-                                UIApplication.shared.isIdleTimerDisabled = true
-                            } else {
-                                UIApplication.shared.isIdleTimerDisabled = false
-                            }
+                            UIApplication.shared.isIdleTimerDisabled = newValue
                         }
                     Button("Reset Registration Code") {
                         relayConnectionManager.savedRegistrationURL = ""
@@ -115,12 +115,18 @@ struct ContentView: View {
                     .foregroundColor(.red)
                     .frame(maxWidth: .infinity)
                 } footer: {
-                    Text("You will need to re-enter the code on your other devices")
+                    Text("You will need to re-enter the code on your other devices. Keep ValidationRelay open in the foreground and keep this iPhone awake.")
                 }
             }
             .listStyle(.grouped)
             .navigationBarHidden(true)
             .navigationBarTitle("", displayMode: .inline)
+            .onAppear {
+                UIApplication.shared.isIdleTimerDisabled = keepAwake
+                if wantRelayConnected {
+                    connectCurrentRelay()
+                }
+            }
         }
         
     }

@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct ValidationRelayApp: App {
+    @StateObject private var relayConnectionManager = RelayConnectionManager()
+
     var body: some Scene {
         WindowGroup {
-            ContentView(relayConnectionManager: RelayConnectionManager())
+            ContentView(relayConnectionManager: relayConnectionManager)
         }
     }
 }

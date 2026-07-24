@@ -56,8 +56,16 @@ class RelayConnectionManager: ObservableObject {
     let watchdogInterval: TimeInterval = 30
     let staleConnectionInterval: TimeInterval = 90
 
+    func connectIfNeeded(_ url: URL) {
+        if shouldReconnect, currentURL == url, connectionDelegate != nil {
+            return
+        }
+        connect(url)
+    }
+
     func connect(_ url: URL) {
-        logItems.log("Connecting to \(url)")
+        let port = url.port.map { ":\($0)" } ?? ""
+        logItems.log("Connecting to \(url.scheme ?? "wss")://\(url.host ?? "relay")\(port)")
         connectionStatusMessage = "Connecting..."
         currentURL = url
         shouldReconnect = true
@@ -71,7 +79,7 @@ class RelayConnectionManager: ObservableObject {
         let oldDelegate = connectionDelegate
         connectionDelegate = nil
         oldDelegate?.disconnect()
-        connectionDelegate = RelayConnectionDelegate(manager: self)
+        connectionDelegate = RelayConnectionDelegate(manager: self, url: url)
     }
 
     func disconnect() {
@@ -170,10 +178,10 @@ class RelayConnectionManager: ObservableObject {
                 return
             }
             self.reconnectWork = nil
-            guard self.shouldReconnect, self.currentURL != nil else {
+            guard self.shouldReconnect, let url = self.currentURL else {
                 return
             }
-            self.connectionDelegate = RelayConnectionDelegate(manager: self)
+            self.connectionDelegate = RelayConnectionDelegate(manager: self, url: url)
         }
         // Wait a bit then try again
         DispatchQueue.main.asyncAfter(deadline: .now() + DispatchTimeInterval.seconds(backoff), execute: work)
@@ -185,13 +193,14 @@ class RelayConnectionManager: ObservableObject {
 
 class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
     var connection: WebSocketConnection
-    let manager: RelayConnectionManager
+    weak var manager: RelayConnectionManager?
 
     init(
-        manager: RelayConnectionManager
+        manager: RelayConnectionManager,
+        url: URL
     ) {
         self.manager = manager
-        connection = NWWebSocket(url: manager.currentURL!, connectAutomatically: true)
+        connection = NWWebSocket(url: url, connectAutomatically: true)
         connection.delegate = self
         connection.ping(interval: 30)
     }
@@ -201,44 +210,57 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
     }
     
     func webSocketDidConnect(connection: WebSocketConnection) {
+        guard let manager else {
+            return
+        }
         manager.didConnect(self)
         var registerCommand = ["command": "register", "data": ["": ""]] as [String : Any]
         if manager.currentURL?.absoluteString == manager.savedRegistrationURL {
             manager.logItems.log("Using saved registration credentials")
             registerCommand["data"] = ["code": manager.savedRegistrationCode, "secret": manager.savedRegistrationSecret]
         }
-        let data = try! JSONSerialization.data(withJSONObject: registerCommand)
-        connection.send(string: String(data: data, encoding: .utf8)!)
+        do {
+            let data = try JSONSerialization.data(withJSONObject: registerCommand)
+            guard let message = String(data: data, encoding: .utf8) else {
+                manager.logItems.log("Failed to encode registration request", isError: true)
+                return
+            }
+            connection.send(string: message)
+        } catch {
+            manager.logItems.log("Failed to create registration request", isError: true)
+        }
     }
     
     func webSocketDidDisconnect(connection: WebSocketConnection, closeCode: NWProtocolWebSocket.CloseCode, reason: Data?) {
-        manager.didDisconnect(self)
+        manager?.didDisconnect(self)
     }
     
     func webSocketViabilityDidChange(connection: WebSocketConnection, isViable: Bool) {
         if !isViable {
-            manager.logItems.log("Websocket connection is no longer viable", isError: true)
-            manager.triggerReconnect(self)
+            manager?.logItems.log("Websocket connection is no longer viable", isError: true)
+            manager?.triggerReconnect(self)
         }
     }
     
     func webSocketDidAttemptBetterPathMigration(result: Result<WebSocketConnection, NWError>) {
         // Respond to when a WebSocket connection migrates to a better network path
         // (e.g. A device moves from a cellular connection to a Wi-Fi connection)
-        print("WebSocket connection attempted better path migration, ignoring")
+        manager?.logItems.log("Websocket connection attempted network path migration")
     }
     
     func webSocketDidReceiveError(connection: WebSocketConnection, error: NWError) {
-        print(error)
-        manager.logItems.log("Websocket error: \(error)", isError: true)
-        self.manager.triggerReconnect(self)
+        manager?.logItems.log("Websocket error: \(error)", isError: true)
+        manager?.triggerReconnect(self)
     }
     
     func webSocketDidReceivePong(connection: WebSocketConnection) {
-        manager.didReceivePong(self)
+        manager?.didReceivePong(self)
     }
     
     func webSocketDidReceiveMessage(connection: WebSocketConnection, string: String) {
+        guard let manager else {
+            return
+        }
         guard let encodedMessage = string.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: encodedMessage, options: []) else {
             manager.logItems.log("Received an invalid relay message", isError: true)
@@ -259,19 +281,22 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
                     manager.savedRegistrationURL = manager.currentURL?.absoluteString ?? ""
                 }
             }
-            if let command = jsonDict["command"] as? String {
+            if let command = jsonDict["command"] as? String,
+               command == "get-version-info" || command == "get-validation-data" {
+                guard let requestID = jsonDict["id"] else {
+                    manager.logItems.log("Received a relay request without an id", isError: true)
+                    return
+                }
                 if command == "get-version-info" {
-                    let versionInfo = ["command": "response", "data": ["versions": getIdentifiers()], "id": jsonDict["id"]!] as [String : Any]
+                    let versionInfo = ["command": "response", "data": ["versions": getIdentifiers()], "id": requestID] as [String : Any]
                     manager.logItems.log("Sending device version information")
-                    let data = try! JSONSerialization.data(withJSONObject: versionInfo)
-                    connection.send(string: String(data: data, encoding: .utf8)!)
+                    sendJSON(versionInfo, connection: connection)
                 }
                 if command == "get-validation-data" {
                     let v = generateValidationData()
                     manager.logItems.log("Generated validation data")
-                    let validationData = ["command": "response", "data": ["data": v.base64EncodedString()], "id": jsonDict["id"]!] as [String : Any]
-                    let data = try! JSONSerialization.data(withJSONObject: validationData)
-                    connection.send(string: String(data: data, encoding: .utf8)!)
+                    let validationData = ["command": "response", "data": ["data": v.base64EncodedString()], "id": requestID] as [String : Any]
+                    sendJSON(validationData, connection: connection)
                 }
             }
         }
@@ -279,7 +304,20 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
     }
     
     func webSocketDidReceiveMessage(connection: WebSocketConnection, data: Data) {
-        manager.logItems.log("Received an unexpected binary relay message", isError: true)
+        manager?.logItems.log("Received an unexpected binary relay message", isError: true)
+    }
+
+    private func sendJSON(_ object: [String: Any], connection: WebSocketConnection) {
+        do {
+            let data = try JSONSerialization.data(withJSONObject: object)
+            guard let message = String(data: data, encoding: .utf8) else {
+                manager?.logItems.log("Failed to encode relay response", isError: true)
+                return
+            }
+            connection.send(string: message)
+        } catch {
+            manager?.logItems.log("Failed to create relay response", isError: true)
+        }
     }
 }
 
