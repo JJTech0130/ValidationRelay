@@ -106,6 +106,8 @@ enum RegistrationSecretStore {
 }
 
 class RelayConnectionManager: ObservableObject {
+    private static let fallbackRegistrationSecretKey = "savedRegistrationSecret"
+
     @Published var registrationCode: String = "None"
     @Published var connectionStatusMessage: String = ""
     @Published var logItems = LogItems()
@@ -116,11 +118,33 @@ class RelayConnectionManager: ObservableObject {
 
     public var savedRegistrationSecret: String {
         get {
-            RegistrationSecretStore.read() ?? ""
+            if let keychainSecret = RegistrationSecretStore.read(),
+               !keychainSecret.isEmpty {
+                return keychainSecret
+            }
+            return UserDefaults.standard.string(
+                forKey: Self.fallbackRegistrationSecretKey
+            ) ?? ""
         }
         set {
-            if !RegistrationSecretStore.write(newValue) {
-                logItems.log("Failed to update the registration secret", isError: true)
+            if newValue.isEmpty {
+                _ = RegistrationSecretStore.write("")
+                UserDefaults.standard.removeObject(
+                    forKey: Self.fallbackRegistrationSecretKey
+                )
+            } else if RegistrationSecretStore.write(newValue) {
+                UserDefaults.standard.removeObject(
+                    forKey: Self.fallbackRegistrationSecretKey
+                )
+            } else {
+                UserDefaults.standard.set(
+                    newValue,
+                    forKey: Self.fallbackRegistrationSecretKey
+                )
+                logItems.log(
+                    "Keychain unavailable; using local app storage for relay credentials",
+                    isError: true
+                )
             }
         }
     }
@@ -141,12 +165,21 @@ class RelayConnectionManager: ObservableObject {
     let staleConnectionInterval: TimeInterval = 90
 
     init() {
-        if let legacySecret = UserDefaults.standard.string(forKey: "savedRegistrationSecret"),
+        if let legacySecret = UserDefaults.standard.string(
+            forKey: Self.fallbackRegistrationSecretKey
+        ),
            !legacySecret.isEmpty,
            RegistrationSecretStore.read() == nil {
-            _ = RegistrationSecretStore.write(legacySecret)
+            if RegistrationSecretStore.write(legacySecret) {
+                UserDefaults.standard.removeObject(
+                    forKey: Self.fallbackRegistrationSecretKey
+                )
+            }
+        } else if RegistrationSecretStore.read() != nil {
+            UserDefaults.standard.removeObject(
+                forKey: Self.fallbackRegistrationSecretKey
+            )
         }
-        UserDefaults.standard.removeObject(forKey: "savedRegistrationSecret")
     }
 
     func connectIfNeeded(_ url: URL) {
@@ -350,9 +383,24 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
         }
         manager.didConnect(self)
         var registerCommand = ["command": "register", "data": ["": ""]] as [String : Any]
-        if manager.currentURL?.absoluteString == manager.savedRegistrationURL {
+        let savedSecret = manager.savedRegistrationSecret
+        if manager.currentURL?.absoluteString == manager.savedRegistrationURL,
+           !manager.savedRegistrationCode.isEmpty,
+           !savedSecret.isEmpty {
             manager.logItems.log("Using saved registration credentials")
-            registerCommand["data"] = ["code": manager.savedRegistrationCode, "secret": manager.savedRegistrationSecret]
+            registerCommand["data"] = [
+                "code": manager.savedRegistrationCode,
+                "secret": savedSecret
+            ]
+        } else if manager.currentURL?.absoluteString == manager.savedRegistrationURL {
+            manager.logItems.log(
+                "Saved registration credentials were incomplete; requesting a new code",
+                isError: true
+            )
+            manager.savedRegistrationURL = ""
+            manager.savedRegistrationCode = ""
+            manager.savedRegistrationSecret = ""
+            manager.registrationCode = "None"
         }
         do {
             let data = try JSONSerialization.data(withJSONObject: registerCommand)
@@ -372,8 +420,9 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
     
     func webSocketViabilityDidChange(connection: WebSocketConnection, isViable: Bool) {
         if !isViable {
-            manager?.logItems.log("Websocket connection is no longer viable", isError: true)
-            manager?.triggerReconnect(self)
+            manager?.logItems.log(
+                "Websocket path is temporarily unavailable; waiting for heartbeat recovery"
+            )
         }
     }
     
@@ -413,7 +462,10 @@ class RelayConnectionDelegate: WebSocketConnectionDelegate, ObservableObject {
                     of: #"^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{4}(-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{4}){3}$"#,
                     options: .regularExpression
                    ) != nil,
-                   secret.range(of: #"^[A-Za-z0-9+/]{1,64}$"#, options: .regularExpression) != nil {
+                   secret.range(
+                    of: #"^[A-Za-z0-9+/_-]{1,128}={0,2}$"#,
+                    options: .regularExpression
+                   ) != nil {
                     manager.registrationCode = code
                     if manager.savedRegistrationCode != code {
                         manager.logItems.log("Received new registration credentials")
